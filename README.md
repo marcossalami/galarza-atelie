@@ -5,6 +5,10 @@ Este é um site Vite estático, pronto para ser hospedado no Cloudflare Pages. N
 As decisões confirmadas do produto e os pontos que ainda dependem da artista
 estão em [docs/briefing.md](docs/briefing.md).
 
+O sistema visual e a decisão atual sobre o feed do Instagram estão registrados
+em [docs/design-system.md](docs/design-system.md) e
+[docs/instagram-feed-decision.md](docs/instagram-feed-decision.md).
+
 ## Publicação no Cloudflare Workers
 
 1. Crie uma conta gratuita no Cloudflare.
