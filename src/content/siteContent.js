@@ -20,6 +20,13 @@ export const portfolioItems = [
   { image: "porta-retrato.jpeg", alt: "Porta-retrato cerâmico com estrelas", caption: "Para guardar uma história" },
 ];
 
+export const instagramHighlights = [
+  { image: "caneca-coracoes.jpeg", alt: "Caneca rosa com corações em relevo", label: "detalhes que pedem aproximação" },
+  { image: "canecas-florais.jpeg", alt: "Conjunto de canecas florais coloridas", label: "cores que ficam à mesa" },
+  { image: "copo-estrelas-frente.jpeg", alt: "Copo rosa com estrelas em relevo", label: "estrelas em processo" },
+  { image: "porta-retrato.jpeg", alt: "Porta-retrato cerâmico com estrelas", label: "memórias moldadas à mão" },
+];
+
 export const productCategories = [
   { name: "Xícaras", description: "para desacelerar entre um café e outro", color: "sage", shape: "cup" },
   { name: "Bowls", description: "formas para servir e ficar à mesa", color: "lilac", shape: "bowl" },

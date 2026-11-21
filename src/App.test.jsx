@@ -8,12 +8,12 @@ describe("Home page", () => {
   it("renders the primary navigation and landmark sections", () => {
     expect(screen.getByRole("navigation", { name: "Navegação principal" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /da matéria/i })).toBeInTheDocument();
-    expect(document.querySelectorAll("section")).toHaveLength(7);
+    expect(document.querySelectorAll("section")).toHaveLength(8);
   });
 
   it("renders all current portfolio images with meaningful alt text", () => {
     const images = screen.getAllByRole("img", { name: /.+/ });
-    expect(images).toHaveLength(9);
+    expect(images).toHaveLength(13);
     expect(screen.getByAltText("Caneca preta com aranha e alça em forma de teia")).toBeInTheDocument();
   });
 
@@ -30,6 +30,6 @@ describe("Home page", () => {
   });
 
   it("links to the prepared ateliê story structure", () => {
-    expect(screen.getByRole("link", { name: /conhecer o espaço do ateliê/i })).toHaveAttribute("href", "?pagina=atelie");
+    expect(screen.getByRole("link", { name: /o espaço do ateliê/i })).toHaveAttribute("href", "?pagina=atelie");
   });
 });

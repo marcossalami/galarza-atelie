@@ -3,6 +3,7 @@ import { Header } from "./components/Header.jsx";
 import { Hero } from "./components/Hero.jsx";
 import { Intro } from "./components/Intro.jsx";
 import { Portfolio } from "./components/Portfolio.jsx";
+import { InstagramSection } from "./components/InstagramSection.jsx";
 import { Process } from "./components/Process.jsx";
 import { Archive } from "./components/Archive.jsx";
 import { Commissions } from "./components/Commissions.jsx";
@@ -33,6 +34,7 @@ export default function App() {
       <Hero header={<Header />} />
       <Intro />
       <Portfolio />
+      <InstagramSection />
       <Process />
       <Archive />
       <Commissions />
