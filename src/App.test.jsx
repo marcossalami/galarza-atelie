@@ -8,12 +8,12 @@ describe("Home page", () => {
   it("renders the primary navigation and landmark sections", () => {
     expect(screen.getByRole("navigation", { name: "Navegação principal" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /da matéria/i })).toBeInTheDocument();
-    expect(document.querySelectorAll("section")).toHaveLength(8);
+    expect(document.querySelectorAll("section")).toHaveLength(7);
   });
 
   it("renders all current portfolio images with meaningful alt text", () => {
     const images = screen.getAllByRole("img", { name: /.+/ });
-    expect(images).toHaveLength(11);
+    expect(images).toHaveLength(9);
     expect(screen.getByAltText("Caneca preta com aranha e alça em forma de teia")).toBeInTheDocument();
   });
 

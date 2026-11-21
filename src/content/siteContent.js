@@ -3,7 +3,7 @@ export const instagramDirectUrl = "https://ig.me/m/galarza.atelie";
 
 export const navigation = [
   { href: "#portfolio", label: "Portfólio" },
-  { href: "#disponiveis", label: "Disponíveis" },
+  { href: "#processo", label: "Processo" },
   { href: "#atelie", label: "O ateliê" },
   { href: "#encomendas", label: "Encomendas" },
 ];
