@@ -28,4 +28,8 @@ describe("Home page", () => {
   it("sends commission requests to the official Instagram Direct", () => {
     expect(screen.getByRole("link", { name: /iniciar encomenda pelo direct/i })).toHaveAttribute("href", "https://ig.me/m/galarza.atelie");
   });
+
+  it("links to the prepared ateliê story structure", () => {
+    expect(screen.getByRole("link", { name: /conhecer o espaço do ateliê/i })).toHaveAttribute("href", "?pagina=atelie");
+  });
 });
