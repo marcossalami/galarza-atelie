@@ -23,3 +23,11 @@ test("320 px and 390 px layouts do not overflow and stack portfolio cards", asyn
   expect(layout.cards.every((box) => box.left >= 0 && box.right <= layout.viewport)).toBeTruthy();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
 });
+
+test("catalog filters real photos without horizontal overflow", async ({ page }) => {
+  await page.goto("/?pagina=catalogo");
+  await expect(page.getByRole("heading", { name: /peças feitas/i })).toBeVisible();
+  await page.getByRole("tab", { name: "Casa" }).click();
+  await expect(page.getByRole("heading", { name: "Vaso azul" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+});
