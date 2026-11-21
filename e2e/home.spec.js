@@ -9,8 +9,8 @@ test("desktop layout keeps the full navigation and four-column portfolio", async
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
 });
 
-test("mobile layout does not overflow and stacks portfolio cards", async ({ page }, testInfo) => {
-  testInfo.skip(testInfo.project.name !== "mobile", "Mobile-only layout assertion");
+test("320 px and 390 px layouts do not overflow and stack portfolio cards", async ({ page }, testInfo) => {
+  testInfo.skip(!testInfo.project.name.startsWith("mobile-"), "Mobile-only layout assertion");
   await page.goto("/");
   await expect(page.locator(".navlinks")).toBeHidden();
   const layout = await page.locator(".portfolio-grid").evaluate((grid) => ({
@@ -19,6 +19,7 @@ test("mobile layout does not overflow and stacks portfolio cards", async ({ page
     cards: [...grid.children].map((card) => card.getBoundingClientRect().toJSON()),
   }));
   expect(layout.columns).toBe(1);
+  expect(layout.viewport).toBe(page.viewportSize().width);
   expect(layout.cards.every((box) => box.left >= 0 && box.right <= layout.viewport)).toBeTruthy();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
 });
