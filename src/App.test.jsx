@@ -24,4 +24,8 @@ describe("Home page", () => {
       expect(link).toHaveAttribute("rel", expect.stringContaining("noopener"));
     });
   });
+
+  it("sends commission requests to the official Instagram Direct", () => {
+    expect(screen.getByRole("link", { name: /iniciar encomenda pelo direct/i })).toHaveAttribute("href", "https://ig.me/m/galarza.atelie");
+  });
 });

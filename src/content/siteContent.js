@@ -1,4 +1,5 @@
 export const instagramUrl = "https://www.instagram.com/galarza.atelie/";
+export const instagramDirectUrl = "https://ig.me/m/galarza.atelie";
 
 export const navigation = [
   { href: "#portfolio", label: "Portfólio" },
