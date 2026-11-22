@@ -28,7 +28,6 @@
   isolation: isolate;
   background: #52604d;
   border: 1px solid var(--ink);
-  border-radius: 1.5rem 1.5rem 2.5rem 1.25rem;
   overflow: hidden;
 }
 .storefront-hero::before {
