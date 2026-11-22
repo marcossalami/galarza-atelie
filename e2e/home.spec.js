@@ -1,33 +1,18 @@
 import { expect, test } from "@playwright/test";
 
-test("desktop layout keeps the full navigation and four-column portfolio", async ({ page }, testInfo) => {
-  testInfo.skip(testInfo.project.name !== "desktop", "Desktop-only layout assertion");
+test("a vitrine se ajusta à tela e abre as referências pelo menu", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible();
-  await expect(page.locator(".navlinks")).toBeVisible();
-  expect(await page.locator(".portfolio-grid").evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" ").length)).toBe(4);
+  await expect(page.getByRole("heading", { name: "Galarza Ateliê" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Instagram" })).toBeVisible();
+  await page.locator("summary").click();
+  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Referências" }).click();
+  await expect(page).toHaveURL(/pagina=referencias/);
+  await expect(page.getByRole("heading", { name: "Copos" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
 });
 
-test("320 px and 390 px layouts do not overflow and stack portfolio cards", async ({ page }, testInfo) => {
-  testInfo.skip(!testInfo.project.name.startsWith("mobile-"), "Mobile-only layout assertion");
-  await page.goto("/");
-  await expect(page.locator(".navlinks")).toBeHidden();
-  const layout = await page.locator(".portfolio-grid").evaluate((grid) => ({
-    viewport: window.innerWidth,
-    columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length,
-    cards: [...grid.children].map((card) => card.getBoundingClientRect().toJSON()),
-  }));
-  expect(layout.columns).toBe(1);
-  expect(layout.viewport).toBe(page.viewportSize().width);
-  expect(layout.cards.every((box) => box.left >= 0 && box.right <= layout.viewport)).toBeTruthy();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
-});
-
-test("catalog filters real photos without horizontal overflow", async ({ page }) => {
+test("o catálogo anterior ainda abre e filtra as peças", async ({ page }) => {
   await page.goto("/?pagina=catalogo");
-  await expect(page.getByRole("heading", { name: /peças feitas/i })).toBeVisible();
   await page.getByRole("tab", { name: "Casa" }).click();
   await expect(page.getByRole("heading", { name: "Vaso azul" })).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
 });

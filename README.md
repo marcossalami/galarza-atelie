@@ -5,6 +5,18 @@ Este é um site Vite estático, pronto para ser hospedado no Cloudflare Pages. N
 As decisões confirmadas do produto e os pontos que ainda dependem da artista
 estão em [docs/briefing.md](docs/briefing.md).
 
+## Atualizar peças disponíveis
+
+Nesta entrega, atualize o catálogo diretamente em `src/content/catalog.js`.
+Só marque uma peça como `status: "available"` após confirmar o estoque e
+preencher `priceInCents` com o preço em centavos. Por exemplo, 12500 equivale a
+R$ 125,00. Cadastre nome, formato, foto e texto alternativo. Quando tiver os
+dados, informe `measurements`, `capacity` e `photos` (cada foto com `image` e `alt`).
+
+Marque uma peça vendida como `status: "sold"`. Ela sai da home e seu link
+continua funcionando com o aviso de venda e acesso às referências. A galeria
+é uma seleção de trabalhos anteriores. Uma foto no acervo não indica estoque.
+
 O sistema visual e a decisão atual sobre o feed do Instagram estão registrados
 em [docs/design-system.md](docs/design-system.md) e
 [docs/instagram-feed-decision.md](docs/instagram-feed-decision.md).
