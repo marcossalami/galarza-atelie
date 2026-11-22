@@ -1,11 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { pieceUrl } from "../content/catalog.js";
 import { instagramUrl } from "../content/siteContent.js";
 import { StorefrontHeader } from "./Storefront.jsx";
 
-export function CommissionPage({ piece }) {
+export function CommissionPage({ piece: staticPiece, publishedId }) {
+  const [published, setPublished] = useState(null);
   const [copied, setCopied] = useState(null);
-  const referenceUrl = piece && new URL(pieceUrl(piece), window.location.origin).href;
+  useEffect(() => {
+    if (!publishedId) return;
+    const request = new AbortController();
+    fetch(`/api/pecas/${encodeURIComponent(publishedId)}`, { signal: request.signal })
+      .then((response) => response.ok ? response.json() : null)
+      .then((piece) => { if (piece) setPublished(piece); }).catch(() => {});
+    return () => request.abort();
+  }, [publishedId]);
+  const piece = published ?? staticPiece;
+  const detailPath = published ? `/?publicada=${published.id}` : piece && pieceUrl(piece);
+  const referenceUrl = detailPath && new URL(detailPath, window.location.origin).href;
 
   async function copyLink() {
     try {
@@ -20,8 +31,8 @@ export function CommissionPage({ piece }) {
     <StorefrontHeader />
     <main className="storefront-wrap storefront-section storefront-contact">
       <h1>Encomendas</h1>
-      {piece && <a className="storefront-order-piece" href={pieceUrl(piece)}>
-        <img src={`/portfolio/${piece.image}`} alt={piece.alt} />
+      {piece && <a className="storefront-order-piece" href={detailPath}>
+        <img src={published ? `/api/pecas/${published.id}/foto` : `/portfolio/${piece.image}`} alt={piece.alt ?? piece.name} />
         <span><small>Peça de referência</small><strong>{piece.name}</strong></span>
       </a>}
       <p>Abra o perfil <strong>@galarza.atelie</strong> e toque em <strong>Mensagem</strong>.

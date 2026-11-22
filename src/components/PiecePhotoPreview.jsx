@@ -5,7 +5,8 @@ const resting = { index: 0, zoom: false, x: 50, y: 50 };
 export function PiecePhotoPreview({ photos, onOpen }) {
   const [view, setView] = useState(resting);
   const [loaded, setLoaded] = useState(() => new Set());
-  const visible = loaded.has(photos[view.index].image) ? view.index : 0;
+  const photoSource = (photo) => photo.url ?? `/portfolio/${photo.image}`;
+  const visible = loaded.has(photoSource(photos[view.index])) ? view.index : 0;
 
   function explore(event) {
     if (event.pointerType !== "mouse") return;
@@ -29,7 +30,7 @@ export function PiecePhotoPreview({ photos, onOpen }) {
       onOpen(visible);
       setView(resting);
     }}>
-    {photos.map((photo, index) => <img key={photo.image} src={`/portfolio/${photo.image}`}
+    {photos.map((photo, index) => <img key={photoSource(photo)} src={photoSource(photo)}
       alt="" aria-hidden="true" decoding="async" fetchPriority={index === 0 ? "high" : undefined}
       data-active={index === visible}
       style={{
@@ -37,7 +38,7 @@ export function PiecePhotoPreview({ photos, onOpen }) {
         "--inspection-x": photos.length === 1 ? `${(50 - view.x) * 0.06}px` : "0px",
         "--inspection-y": photos.length === 1 ? `${(50 - view.y) * 0.06}px` : "0px",
       }}
-      onLoad={() => setLoaded((previous) => new Set(previous).add(photo.image))} />)}
+      onLoad={() => setLoaded((previous) => new Set(previous).add(photoSource(photo)))} />)}
     <span>Ampliar foto</span>
   </button>;
 }

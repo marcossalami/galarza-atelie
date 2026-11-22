@@ -94,7 +94,7 @@ export function PhotoViewer({ dialog, photos, index, onSelect, onClose }) {
         onPointerMove={move}
         onPointerUp={(event) => release(event, true)}
         onPointerCancel={(event) => release(event, false)}>
-        <img key={photo.image} ref={image} src={`/portfolio/${photo.image}`} alt={photo.alt} draggable={false}
+        <img key={photo.url ?? photo.image} ref={image} src={photo.url ?? `/portfolio/${photo.image}`} alt={photo.alt} draggable={false}
           style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }} />
       </div>
       <div className="storefront-photo-tools">

@@ -4,9 +4,12 @@ import { PieceDetailPage } from "./components/PieceDetailPage.jsx";
 import { getCatalogItem } from "./content/catalog.js";
 import { Storefront, ReferencesPage } from "./components/Storefront.jsx";
 import { CommissionPage } from "./components/CommissionPage.jsx";
+import { CatalogAdmin, PublishedPiece } from "./components/CatalogAdmin.jsx";
 
 export default function App() {
   const params = new URLSearchParams(window.location.search);
+  if (/^\/gestao\/?$/.test(window.location.pathname)) return <CatalogAdmin />;
+  if (params.has("publicada")) return <PublishedPiece id={params.get("publicada")} />;
   const piece = getCatalogItem(params.get("peca"));
 
   if (piece) {
@@ -22,6 +25,8 @@ export default function App() {
   }
 
   if (params.get("pagina") === "referencias") return <ReferencesPage />;
-  if (params.get("pagina") === "encomendas") return <CommissionPage piece={getCatalogItem(params.get("referencia"))} />;
+  if (params.get("pagina") === "encomendas") {
+    return <CommissionPage piece={getCatalogItem(params.get("referencia"))} publishedId={params.get("referenciaPublicada")} />;
+  }
   return <Storefront />;
 }

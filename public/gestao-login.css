@@ -1,0 +1,7 @@
+html { font: 1rem/1.5 system-ui, sans-serif; color: #262321; background: #f8f4ea; }
+main { max-width: 24rem; margin: 10vh auto; padding: 1.5rem; border: 1px solid; border-radius: 1.25rem; background: #e5d9f2; }
+h1 { font: 2.4rem Georgia, serif; }
+form, label { display: grid; gap: .5rem; }
+input, button { font: inherit; padding: .65rem; border-radius: .55rem; border: 1px solid; }
+button { background: #262321; color: #f8f4ea; cursor: pointer; margin-top: .5rem; }
+@media (max-width: 32rem) { main { margin-inline: 1rem; } }

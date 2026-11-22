@@ -10,7 +10,7 @@ export function PieceDetailPage({ piece }) {
   const dialog = useRef(null);
   const sold = piece.status === "sold";
   const price = piece.status === "available" ? piecePrice(piece) : null;
-  const photos = [{ image: piece.image, alt: piece.alt }, ...(piece.photos ?? [])];
+  const photos = [{ image: piece.image, alt: piece.alt, url: piece.photoUrl }, ...(piece.photos ?? [])];
 
   function openPhoto(index) {
     setExpandedPhoto(index);
@@ -42,7 +42,7 @@ export function PieceDetailPage({ piece }) {
             <dt>Medidas</dt><dd>{piece.measurements ?? "Sob consulta"}</dd>
             {piece.capacity && <><dt>Capacidade</dt><dd>{piece.capacity}</dd></>}
           </dl>
-          {!sold && <a className="storefront-button" href={`${commissionsUrl}&referencia=${encodeURIComponent(pieceSlug(piece))}`}>
+          {!sold && <a className="storefront-button" href={`${commissionsUrl}&${piece.photoUrl ? "referenciaPublicada" : "referencia"}=${encodeURIComponent(pieceSlug(piece))}`}>
             Encomendar com esta referência
           </a>}
         </div>

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { getAvailablePieces, piecePrice, pieceUrl } from "../content/catalog.js";
 import { commissionsUrl, instagramUrl, portfolioItems } from "../content/siteContent.js";
 import "./storefront.css";
@@ -38,11 +39,24 @@ export function StorefrontHeader() {
 }
 
 function PortfolioPhoto({ item, ...props }) {
-  return <img src={`/portfolio/${item.image}`} alt={item.alt} {...props} />;
+  return <img src={item.photoUrl ?? `/portfolio/${item.image}`} alt={item.alt} {...props} />;
 }
 
 export function Storefront() {
-  const pieces = getAvailablePieces();
+  const [published, setPublished] = useState([]);
+  useEffect(() => {
+    const request = new AbortController();
+    fetch("/api/pecas", { signal: request.signal })
+      .then((response) => response.ok ? response.json() : [])
+      .then((items) => {
+        if (Array.isArray(items)) setPublished(items.map((piece) => ({
+          slug: piece.id, name: piece.name, alt: piece.name, priceInCents: piece.price,
+          photoUrl: `/api/pecas/${piece.id}/foto`,
+        })));
+      }).catch(() => {});
+    return () => request.abort();
+  }, []);
+  const pieces = [...published, ...getAvailablePieces()];
   return <div className="storefront">
     <StorefrontHeader />
     <main>
@@ -64,7 +78,7 @@ export function Storefront() {
       <section className="storefront-wrap storefront-section" id="disponiveis" tabIndex={-1} aria-labelledby="available-title">
         <h2 id="available-title">Peças disponíveis</h2>
         {pieces.length ? <div className="storefront-grid">
-          {pieces.map((piece) => <a className="storefront-card" key={piece.slug} href={pieceUrl(piece)}>
+          {pieces.map((piece) => <a className="storefront-card" key={piece.slug} href={piece.photoUrl ? `/?publicada=${piece.slug}` : pieceUrl(piece)}>
             <PortfolioPhoto item={piece} loading="lazy" />
             <span>{piece.name}</span>
             <small>{piecePrice(piece)}</small>
