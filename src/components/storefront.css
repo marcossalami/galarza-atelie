@@ -58,6 +58,27 @@
 .storefront-photo-dialog::backdrop { background: #262321d9; }
 .storefront-photo-dialog form { display: flex; justify-content: end; margin-bottom: .5rem; }
 .storefront-photo-dialog img { display: block; max-width: 100%; max-height: 74dvh; object-fit: contain; border-radius: .5rem; }
+.storefront-photo-dialog { width: min(52rem, calc(100% - 1.5rem)); }
+.storefront-photo-dialog[open] { animation: storefront-enter .2s ease-out both; }
+.storefront-photo-stage { display: grid; place-items: center; height: min(65dvh, 38rem); overflow: hidden; touch-action: none; background: #e8e1d7; border-radius: .5rem; cursor: zoom-in; user-select: none; }
+.storefront-photo-stage img { max-height: min(65dvh, 38rem); pointer-events: none; transition: transform .22s ease-out; }
+.storefront-photo-stage[data-zoomed="true"] { cursor: grab; }
+.storefront-photo-stage[data-moving="true"] { cursor: grabbing; }
+.storefront-photo-stage[data-moving="true"] img { transition: none; }
+.storefront-photo-tools { display: flex; align-items: center; justify-content: center; gap: .5rem; flex-wrap: wrap; margin-top: .55rem; }
+.storefront-photo-tools button { min-height: 2.75rem; padding: .35rem .65rem; border: 1px solid; border-radius: 1.25rem; background: var(--paper); color: var(--ink); font: inherit; cursor: pointer; }
+.storefront-photo-tools button:disabled { opacity: .48; cursor: default; }
+.storefront-order-piece { display: inline-flex; align-items: center; gap: .85rem; max-width: 100%; margin-top: 1rem; padding: .5rem .85rem .5rem .5rem; border: 1px solid; border-radius: 1rem; background: var(--lilac); }
+.storefront-order-piece img { width: 4rem; height: 4rem; object-fit: cover; border-radius: .65rem; }
+.storefront-order-piece small, .storefront-order-piece strong { display: block; }
+.storefront-card, .storefront-button, .storefront-instagram { transition: transform .18s ease-out; }
+@media (hover: hover) {
+  .storefront-card:hover, .storefront-button:hover, .storefront-instagram:hover { transform: translateY(-2px); }
+}
+@keyframes storefront-enter { from { opacity: 0; transform: translateY(.55rem) scale(.98); } }
+@media (prefers-reduced-motion: reduce) {
+  .storefront *, .storefront *::before, .storefront *::after { animation: none !important; transition: none !important; }
+}
 @media (max-width: 700px) {
   .storefront-hero, .storefront-detail { grid-template-columns: 1fr; }
   .storefront-cover-link { order: -1; }
