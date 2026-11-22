@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { PieceDetailPage } from "./PieceDetailPage.jsx";
 import { preparePhoto, requestJson } from "./adminRequests.js";
+import { AdminHeader } from "./AdminPanel.jsx";
 import "./catalog-admin.css";
 
 const endpoint = "/api/gestao/pecas";
@@ -21,6 +22,7 @@ function PieceCard({ piece, photo }) {
 export function CatalogAdmin() {
   const [items, setItems] = useState(null);
   const [piece, setPiece] = useState(blank);
+  const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -34,6 +36,7 @@ export function CatalogAdmin() {
   }, []);
 
   function select(item) {
+    setEditing(true);
     setPiece(item ? { ...item, price: item.price === null ? "" : String(item.price / 100).replace(".", ","), photo: null } : blank);
     setError("");
     setMessage("");
@@ -46,6 +49,21 @@ export function CatalogAdmin() {
   const original = items?.find(({ id }) => id === piece.id);
   const hasEdits = original && (piece.name !== original.name || piece.format !== original.format ||
     cents !== original.price || Boolean(piece.photo));
+  const unsaved = editing && (original ? hasEdits : Boolean(piece.name || piece.format || piece.price || piece.photo));
+
+  function backToList() {
+    if (unsaved && !window.confirm("Voltar à lista sem salvar as alterações desta peça?")) return;
+    setEditing(false);
+    setError("");
+    setMessage("");
+  }
+
+  useEffect(() => {
+    if (!unsaved) return;
+    const warn = (event) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [unsaved]);
 
   async function changePhoto(event) {
     const file = event.target.files[0];
@@ -127,44 +145,52 @@ export function CatalogAdmin() {
   }
 
   return (
-    <main className="catalog-management">
-      <header>
-        <h1>Gerenciar peças</h1>
-        <form action="/gestao/sair" method="post"><button type="submit">Sair</button></form>
-      </header>
-      <nav aria-label="Gestão"><a href="/gestao?editar=inicio">Editar página inicial</a></nav>
+    <div className="admin-shell">
+    <AdminHeader />
+    <main className="admin-page">
+      <div className="admin-title">
+        {editing && <button type="button" className="admin-back" disabled={busy} onClick={backToList}>← Voltar para minhas peças</button>}
+        <h1>{editing ? (piece.id ? "Editar peça" : "Nova peça") : "Minhas peças"}</h1>
+      </div>
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
-      {items && <>
-        <div className="piece-picker">
-          <button disabled={busy} onClick={() => select(null)}>Nova peça</button>
-          {items.map((item) => <button key={item.id} disabled={busy} onClick={() => select(item)}>
-            {item.name || "Peça sem nome"} · {item.published ? "Publicada" : item.sold ? "Vendida" : "Rascunho"}
-          </button>)}
-        </div>
-        <form onSubmit={save}>
+      {items && !editing && <div className="admin-surface admin-catalog-list">
+        <button type="button" className="admin-primary" onClick={() => select(null)}>＋ Adicionar peça</button>
+        {!items.length && <p>Você ainda não cadastrou nenhuma peça.</p>}
+        {items.length > 0 && <ul className="admin-ordered">
+          {items.map((item) => <li key={item.id}>
+            {item.hasPhoto && <img className="admin-piece-thumb" src={`${endpoint}/${item.id}/foto?v=${item.revision}`} alt="" />}
+            <div><strong>{item.name || "Peça sem nome"}</strong>
+              <span className="admin-row-status">{item.published ? "Na vitrine" : item.sold ? "Vendida" : "Rascunho"}</span></div>
+            <button type="button" aria-label={`Editar ${item.name || "peça sem nome"}`} onClick={() => select(item)}>Editar</button>
+          </li>)}
+        </ul>}
+      </div>}
+      {items && editing && <div className="admin-piece-layout">
+        <form className="admin-surface" onSubmit={save}>
           <fieldset disabled={busy}>
-            <legend>{piece.id ? "Editar peça" : "Nova peça"}</legend>
+            <legend className="admin-visually-hidden">Dados da peça</legend>
             <label>Nome<input maxLength={100} value={piece.name} onChange={(event) => setPiece({ ...piece, name: event.target.value })} /></label>
             <label>Formato<input maxLength={50} value={piece.format} onChange={(event) => setPiece({ ...piece, format: event.target.value })} /></label>
             <label>Preço em reais<input inputMode="decimal" maxLength={9} value={piece.price} onChange={(event) => setPiece({ ...piece, price: event.target.value })} /></label>
             <label>Foto<input type="file" accept="image/*" onChange={changePhoto} /></label>
             {!piece.published && <button type="submit" value="draft">{piece.sold ? "Salvar peça vendida" : "Salvar rascunho"}</button>}
-            <button type="submit" value="publish">{piece.published ? "Salvar alterações" : piece.sold ? "Voltar à vitrine" : "Publicar"}</button>
+            <button className="admin-primary" type="submit" value="publish">{piece.published ? "Salvar alterações" : piece.sold ? "Voltar à vitrine" : "Publicar na vitrine"}</button>
           </fieldset>
         </form>
-        <section aria-label="Prévia do cartão">
-          <p>Prévia do cartão</p>
+        <section className="admin-surface admin-piece-preview" aria-label="Prévia da peça">
+          <p>Como a peça aparece na loja</p>
           <PieceCard piece={{ ...piece, price: cents }} photo={photo} />
+          {(piece.published === 1 || piece.sold === 1) && <a href={`/?publicada=${piece.id}`}>Ver na loja ↗</a>}
+          {piece.published === 1 && <div className="piece-picker">
+            <button disabled={busy} onClick={() => changeAvailability("withdraw")}>Retirar da vitrine</button>
+            <button disabled={busy} onClick={() => changeAvailability("sold")}>Marcar como vendida</button>
+          </div>}
         </section>
-        {(piece.published === 1 || piece.sold === 1) && <a href={`/?publicada=${piece.id}`}>Ver página pública</a>}
-        {piece.published === 1 && <div className="piece-picker">
-          <button disabled={busy} onClick={() => changeAvailability("withdraw")}>Retirar da vitrine</button>
-          <button disabled={busy} onClick={() => changeAvailability("sold")}>Marcar como vendida</button>
-        </div>}
-      </>}
+      </div>}
       {!items && !error && <p role="status">Carregando peças…</p>}
     </main>
+    </div>
   );
 }
 

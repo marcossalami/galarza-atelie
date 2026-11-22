@@ -52,9 +52,9 @@ export function loginPage(url, env, { status = 200, message = "" } = {}) {
   if (status === 429) responseHeaders["Retry-After"] = String(windowSeconds);
   return new Response(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gerenciar peças | Galarza Ateliê</title>
+    <title>Painel | Galarza Ateliê</title>
     <link rel="stylesheet" href="/gestao-login.css"></head><body>
-    <main><p>Galarza Ateliê</p><h1>Gerenciar peças</h1>
+    <main><p>Galarza Ateliê</p><h1>Entrar no painel</h1>
     ${message ? `<p role="alert">${message}</p>` : ""}
     <form action="/gestao/entrar" method="post">
       <label>Usuário<input name="usuario" autocomplete="username" required maxlength="32" autocapitalize="none"></label>
