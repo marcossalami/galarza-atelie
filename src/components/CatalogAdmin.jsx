@@ -127,7 +127,10 @@ export function CatalogAdmin() {
 
   return (
     <main className="catalog-management">
-      <header><h1>Gerenciar peças</h1><a href="/cdn-cgi/access/logout">Sair</a></header>
+      <header>
+        <h1>Gerenciar peças</h1>
+        <form action="/gestao/sair" method="post"><button type="submit">Sair</button></form>
+      </header>
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
       {items && <>

@@ -1,0 +1,6 @@
+html { color-scheme: light; font: 1rem/1.5 system-ui, sans-serif; background: #f8f4ea; color: #262321; }
+main { max-width: 26rem; margin: 12vh auto; padding: 2rem; border: 1px solid; border-radius: 1rem; background: #e5d9f2; }
+h1 { font-family: Georgia, serif; font-weight: normal; margin-block: .2em .8em; }
+a { display: inline-block; padding: .65rem 1rem; border-radius: 2rem; background: #262321; color: #f8f4ea; }
+a:focus-visible { outline: 3px solid; outline-offset: 4px; }
+@media (max-width: 34rem) { main { margin-inline: 1rem; } }

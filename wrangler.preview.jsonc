@@ -8,7 +8,11 @@
   "preview_urls": false,
   "routes": [{ "pattern": "previa.galarzaatelie.com.br", "custom_domain": true }],
   "d1_databases": [
-    { "binding": "CATALOG_DB", "database_name": "galarza-catalogo-preview", "database_id": "7e5a75fe-3333-4ca7-b622-2af6d330e698" }
+    {
+      "binding": "CATALOG_DB",
+      "database_name": "galarza-catalogo-preview",
+      "database_id": "7e5a75fe-3333-4ca7-b622-2af6d330e698"
+    }
   ],
   "assets": {
     "directory": "./dist",

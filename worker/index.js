@@ -1,6 +1,5 @@
-import { createRemoteJWKSet, jwtVerify } from "jose";
+import { authRoute, authorized, loginPage } from "./google-auth.js";
 
-const keySets = new Map();
 const idPattern = /^\/[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/;
 const fields = "id, name, format, price, published, revision, photo IS NOT NULL AS hasPhoto";
 const headers = {
@@ -12,29 +11,6 @@ const headers = {
 
 function json(value, status = 200) {
   return Response.json(value, { status, headers });
-}
-
-async function authorized(request, env) {
-  const token = request.headers.get("Cf-Access-Jwt-Assertion");
-  const issuer = env.ACCESS_TEAM_URL;
-  if (!token || token.length > 8192 || !env.ACCESS_AUD || !env.ARTIST_EMAIL ||
-      !/^https:\/\/[a-z0-9-]+\.cloudflareaccess\.com$/.test(issuer ?? "")) return false;
-
-  try {
-    if (!keySets.has(issuer)) {
-      keySets.set(issuer, createRemoteJWKSet(new URL("/cdn-cgi/access/certs", issuer)));
-    }
-    const { payload } = await jwtVerify(token, keySets.get(issuer), {
-      issuer,
-      audience: env.ACCESS_AUD,
-      algorithms: ["RS256"],
-      requiredClaims: ["exp", "email"],
-    });
-    return typeof payload.email === "string" &&
-      payload.email.toLowerCase() === env.ARTIST_EMAIL.toLowerCase();
-  } catch {
-    return false;
-  }
 }
 
 async function readPiece(request) {
@@ -75,7 +51,11 @@ async function handle(request, env) {
   const path = url.pathname;
   const adminPage = path === "/gestao" || path === "/gestao/";
   const privatePath = /^\/api\/gestao(?:\/|$)/.test(path);
-  if ((adminPage || privatePath) && !await authorized(request, env)) {
+  if (path === "/gestao/google" || path === "/gestao/google/retorno" || path === "/gestao/sair") {
+    return authRoute(request, url, env);
+  }
+  if ((adminPage || privatePath) && !await authorized(request, url, env)) {
+    if (adminPage && request.method === "GET") return loginPage(url, env);
     return json({ error: "Acesso restrito à artista." }, 403);
   }
   if (adminPage && request.method === "GET") {
