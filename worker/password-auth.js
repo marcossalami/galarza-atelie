@@ -116,7 +116,10 @@ export async function authRoute(request, url, env) {
 
   const form = await readLogin(request);
   const password = form?.get("senha") ?? "";
-  const valid = /^[A-Za-z0-9_-]{32}$/.test(password) &&
+  const allowedFormat = env.ADMIN_ALLOW_TEMPORARY_PASSWORD === "true"
+    ? /^[A-Za-z0-9_-]{12,32}$/.test(password)
+    : /^[A-Za-z0-9_-]{32}$/.test(password);
+  const valid = allowedFormat &&
     matchesDigest(await digest(password), env.ADMIN_PASSWORD_HASH);
   if (!valid || form?.get("usuario") !== "artista") {
     return loginPage(url, env, { status: 401, message: "Usuário ou senha inválidos." });

@@ -1,21 +1,11 @@
 import { useEffect, useState } from "react";
 import { PieceDetailPage } from "./PieceDetailPage.jsx";
+import { preparePhoto, requestJson } from "./adminRequests.js";
 import "./catalog-admin.css";
 
 const endpoint = "/api/gestao/pecas";
 const blank = { name: "", format: "", price: "", photo: null };
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-
-async function requestJson(path, options) {
-  const response = await fetch(path, options);
-  const data = await response.json().catch(() => null);
-  if (!response.ok || data === null) {
-    throw new Error(data?.error ?? "Não foi possível carregar. Confira sua conexão ou entre novamente.", {
-      cause: response.status,
-    });
-  }
-  return data;
-}
 
 function PieceCard({ piece, photo }) {
   return (
@@ -26,26 +16,6 @@ function PieceCard({ piece, photo }) {
       {piece.price !== null && <p>{currency.format(piece.price / 100)}</p>}
     </article>
   );
-}
-
-async function preparePhoto(file) {
-  if (file.size > 20_000_000) throw new Error("Escolha uma foto de até 20 MB.");
-  const bitmap = await createImageBitmap(file);
-  try {
-    const scale = Math.min(1, 1200 / Math.max(bitmap.width, bitmap.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-    const context = canvas.getContext("2d", { alpha: false });
-    context.fillStyle = "#fff";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    const photo = canvas.toDataURL("image/jpeg", 0.78).split(",")[1];
-    if (!photo || photo.length > 700_000) throw new Error("A foto é grande demais. Escolha outra.");
-    return photo;
-  } finally {
-    bitmap.close();
-  }
 }
 
 export function CatalogAdmin() {
@@ -73,6 +43,9 @@ export function CatalogAdmin() {
   const cents = /^\d{1,6}(?:[,.]\d{1,2})?$/.test(price) ? Math.round(Number(price.replace(",", ".")) * 100) : null;
   const photo = piece.photo ? `data:image/jpeg;base64,${piece.photo}`
     : piece.hasPhoto ? `${endpoint}/${piece.id}/foto?v=${piece.revision}` : null;
+  const original = items?.find(({ id }) => id === piece.id);
+  const hasEdits = original && (piece.name !== original.name || piece.format !== original.format ||
+    cents !== original.price || Boolean(piece.photo));
 
   async function changePhoto(event) {
     const file = event.target.files[0];
@@ -96,8 +69,8 @@ export function CatalogAdmin() {
     setMessage("");
     setError("");
     if (price && !cents) return setError("Informe um preço válido em reais.");
-    if (publish && (!piece.name.trim() || !piece.format.trim() || !cents || !photo)) {
-      return setError("Para publicar, informe nome, formato, preço e foto.");
+    if ((publish || piece.sold) && (!piece.name.trim() || !piece.format.trim() || !cents || !photo)) {
+      return setError("Informe nome, formato, preço e foto para manter a página pública da peça.");
     }
     setBusy(true);
     try {
@@ -110,7 +83,7 @@ export function CatalogAdmin() {
         ? current.map((item) => item.id === saved.id ? saved : item)
         : [saved, ...current]);
       select(saved);
-      setMessage(saved.published ? "Peça publicada." : "Rascunho salvo.");
+      setMessage(saved.published ? "Peça publicada." : saved.sold ? "Peça vendida atualizada." : "Rascunho salvo.");
     } catch (reason) {
       setError(reason.message);
       if (reason.cause === 409) {
@@ -125,19 +98,48 @@ export function CatalogAdmin() {
     }
   }
 
+  async function changeAvailability(action) {
+    if (hasEdits && !window.confirm("Descartar as edições desta peça e alterar a disponibilidade?")) return;
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const saved = await requestJson(`${endpoint}/${piece.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, revision: piece.revision }),
+      });
+      setItems((current) => current.map((item) => item.id === saved.id ? saved : item));
+      select(saved);
+      setMessage(saved.sold ? "Peça marcada como vendida." : "Peça retirada da vitrine.");
+    } catch (reason) {
+      setError(reason.message);
+      if (reason.cause === 409) {
+        try {
+          setItems(await requestJson(endpoint));
+        } catch {
+          setError("Recarregue a página para abrir a versão atual da peça.");
+        }
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <main className="catalog-management">
       <header>
         <h1>Gerenciar peças</h1>
         <form action="/gestao/sair" method="post"><button type="submit">Sair</button></form>
       </header>
+      <nav aria-label="Gestão"><a href="/gestao?editar=inicio">Editar página inicial</a></nav>
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
       {items && <>
         <div className="piece-picker">
           <button disabled={busy} onClick={() => select(null)}>Nova peça</button>
           {items.map((item) => <button key={item.id} disabled={busy} onClick={() => select(item)}>
-            {item.name || "Peça sem nome"} · {item.published ? "Publicada" : "Rascunho"}
+            {item.name || "Peça sem nome"} · {item.published ? "Publicada" : item.sold ? "Vendida" : "Rascunho"}
           </button>)}
         </div>
         <form onSubmit={save}>
@@ -147,15 +149,19 @@ export function CatalogAdmin() {
             <label>Formato<input maxLength={50} value={piece.format} onChange={(event) => setPiece({ ...piece, format: event.target.value })} /></label>
             <label>Preço em reais<input inputMode="decimal" maxLength={9} value={piece.price} onChange={(event) => setPiece({ ...piece, price: event.target.value })} /></label>
             <label>Foto<input type="file" accept="image/*" onChange={changePhoto} /></label>
-            {!piece.published && <button type="submit" value="draft">Salvar rascunho</button>}
-            <button type="submit" value="publish">{piece.published ? "Salvar alterações" : "Publicar"}</button>
+            {!piece.published && <button type="submit" value="draft">{piece.sold ? "Salvar peça vendida" : "Salvar rascunho"}</button>}
+            <button type="submit" value="publish">{piece.published ? "Salvar alterações" : piece.sold ? "Voltar à vitrine" : "Publicar"}</button>
           </fieldset>
         </form>
         <section aria-label="Prévia do cartão">
           <p>Prévia do cartão</p>
           <PieceCard piece={{ ...piece, price: cents }} photo={photo} />
         </section>
-        {piece.published === 1 && <a href={`/?publicada=${piece.id}`}>Ver página pública</a>}
+        {(piece.published === 1 || piece.sold === 1) && <a href={`/?publicada=${piece.id}`}>Ver página pública</a>}
+        {piece.published === 1 && <div className="piece-picker">
+          <button disabled={busy} onClick={() => changeAvailability("withdraw")}>Retirar da vitrine</button>
+          <button disabled={busy} onClick={() => changeAvailability("sold")}>Marcar como vendida</button>
+        </div>}
       </>}
       {!items && !error && <p role="status">Carregando peças…</p>}
     </main>
@@ -175,7 +181,7 @@ export function PublishedPiece({ id }) {
   }, [id]);
   if (piece) {
     return <PieceDetailPage piece={{ ...piece, alt: piece.name, photoUrl: `/api/pecas/${piece.id}/foto`,
-      status: "available", priceInCents: piece.price, slug: piece.id }} />;
+      status: piece.sold ? "sold" : "available", priceInCents: piece.price, slug: piece.id }} />;
   }
   return <main className="catalog-management">
     <a href="/">Galarza Ateliê</a>

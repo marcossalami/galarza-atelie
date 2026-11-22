@@ -32,3 +32,20 @@
   object-fit: cover;
   border-radius: .75rem;
 }
+.home-management { max-width: 78rem; }
+.home-editor { display: grid; gap: 1rem; }
+.home-editor-cover { display: block; max-width: 100%; max-height: 25rem; border-radius: .75rem; }
+.home-editor-row { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.home-editor-row label { display: flex; align-items: center; }
+.home-editor-row > :first-child { flex: 1; }
+.home-editor select { font: inherit; padding: .5rem; max-width: 100%; }
+.home-management button[aria-pressed="true"] { background: #4c3c5d; color: white; }
+.catalog-management button:disabled { opacity: .55; cursor: default; }
+.home-preview { margin-block: 1.5rem; }
+.home-preview-scroll { overflow: auto; background: #eeeae6; padding: .75rem; margin-block: .75rem; }
+.home-preview iframe { display: block; height: 36rem; margin-inline: auto; border: 1px solid #a39b95; background: white; }
+.home-preview-mobile { width: 390px; max-width: 100%; }
+.home-preview-desktop { width: 1100px; }
+@media (min-width: 55rem) {
+  .home-editor { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
