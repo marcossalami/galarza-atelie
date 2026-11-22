@@ -1,9 +1,27 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "cold-bread-d52c",
+  "main": "worker/index.js",
   "compatibility_date": "2026-11-21",
+  "keep_vars": true,
+  "vars": {
+    "ADMIN_ORIGIN": "https://galarzaatelie.com.br",
+    "ADMIN_ALLOW_TEMPORARY_PASSWORD": "true"
+  },
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "galarzaatelie.com.br", "custom_domain": true }],
+  "d1_databases": [
+    {
+      "binding": "CATALOG_DB",
+      "database_name": "galarza-catalogo",
+      "database_id": "4e00f0d3-23c7-457e-b1fd-78103d803440"
+    }
+  ],
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/gestao", "/gestao/*", "/api/*"]
   }
 }
