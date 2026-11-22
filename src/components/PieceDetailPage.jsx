@@ -10,6 +10,7 @@ export function PieceDetailPage({ piece }) {
   const [expandedPhoto, setExpandedPhoto] = useState(null);
   const dialog = useRef(null);
   const sold = piece.status === "sold";
+  const reference = piece.status === "reference";
   const price = piece.status === "available" ? piecePrice(piece) : null;
   const orderUrl = `${commissionsUrl}&${piece.photoUrl ? "referenciaPublicada" : "referencia"}=${encodeURIComponent(pieceSlug(piece))}`;
   const photos = [{ image: piece.image, alt: piece.alt, url: piece.photoUrl }, ...(piece.photos ?? [])];
@@ -21,9 +22,15 @@ export function PieceDetailPage({ piece }) {
 
   return <div className="storefront">
     <StorefrontHeader />
-    <main className="storefront-wrap storefront-section">
-      <a className="text-link" href="/?pagina=referencias">← Ver referências</a>
-      <article className="storefront-detail">
+    <main className="storefront-wrap storefront-detail-page">
+      <a className="text-link" href={price ? "/#disponiveis" : "/?pagina=referencias"}>
+        {price ? "← Peças disponíveis" : "← Ver referências"}
+      </a>
+      <article className="storefront-detail" aria-labelledby="piece-title">
+        <header className="storefront-detail-heading">
+          <h1 id="piece-title">{piece.name}</h1>
+          {piece.details && <p>{piece.details}</p>}
+        </header>
         <div className="storefront-detail-photos">
           <PiecePhotoPreview photos={photos} onOpen={openPhoto} />
           {photos.length > 1 && <div className="storefront-photo-thumbnails">
@@ -33,22 +40,25 @@ export function PieceDetailPage({ piece }) {
             </button>)}
           </div>}
         </div>
-        <div>
-          <h1>{piece.name}</h1>
-          <p>{sold ? "Vendida" : piece.availability ?? (price ? "Disponível" : pieceAvailability(piece))}</p>
-          {piece.details && <p>{piece.details}</p>}
-          <dl>
-            {!sold && piece.status !== "reference" && <><dt>Preço</dt><dd>{price ?? "Sob consulta"}</dd></>}
-            {piece.format && <><dt>Tipo</dt><dd>{piece.format}</dd></>}
-            {piece.material && <><dt>Material</dt><dd>{piece.material}</dd></>}
-            {piece.origin && <><dt>Origem</dt><dd>{piece.origin}</dd></>}
-            <dt>Medidas</dt><dd>{piece.measurements || "Sob consulta"}</dd>
-            {piece.capacity && <><dt>Capacidade</dt><dd>{piece.capacity}</dd></>}
-          </dl>
+        <div className={`storefront-purchase ${price ? "storefront-purchase-available" : ""}`}>
+          <p className="storefront-piece-status">{sold ? "Vendida" : price ? "Disponível" : piece.availability ?? pieceAvailability(piece)}</p>
+          {price && <p className="storefront-purchase-price">{price}</p>}
+          {!price && !sold && !reference && <p className="storefront-purchase-inquiry">Preço sob consulta</p>}
           {!sold && <a className="storefront-button" href={price ? `${orderUrl}&comprar=1` : orderUrl}>
             {price ? "Comprar esta peça" : "Encomendar com esta referência"}
           </a>}
+          {price && <p className="storefront-purchase-note">Compra combinada pelo Instagram.</p>}
         </div>
+        <section className="storefront-piece-specs" aria-labelledby="piece-specs-title">
+          <h2 id="piece-specs-title">Detalhes da peça</h2>
+          <dl>
+            {piece.format && <div><dt>Tipo</dt><dd>{piece.format}</dd></div>}
+            <div><dt>Medidas</dt><dd>{piece.measurements || "Sob consulta"}</dd></div>
+            {piece.capacity && <div><dt>Capacidade</dt><dd>{piece.capacity}</dd></div>}
+            {piece.material && <div><dt>Material</dt><dd>{piece.material}</dd></div>}
+            {piece.origin && <div><dt>Origem</dt><dd>{piece.origin}</dd></div>}
+          </dl>
+        </section>
       </article>
       <RelatedPieces piece={piece} />
       <PhotoViewer dialog={dialog} photos={photos} index={expandedPhoto} onSelect={setExpandedPhoto} onClose={() => setExpandedPhoto(null)} />

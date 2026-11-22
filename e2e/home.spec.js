@@ -39,7 +39,8 @@ test("uma referência sem preço tem detalhe e foto ampliável", async ({ page }
   await page.goto("/?pagina=referencias");
   await page.getByRole("link", { name: /Flores à mesa/ }).click();
   await expect(page.getByRole("heading", { name: "Flores à mesa" })).toBeVisible();
-  await expect(page.getByText("Sob consulta", { exact: true })).toHaveCount(2);
+  await expect(page.getByText("Preço sob consulta", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Detalhes da peça" }).getByText("Sob consulta", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: /ampliar foto/i }).click();
   const lightbox = page.getByRole("dialog", { name: "Foto ampliada" });
   await expect(lightbox.getByRole("img")).toBeVisible();
