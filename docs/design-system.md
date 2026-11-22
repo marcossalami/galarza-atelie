@@ -9,8 +9,10 @@ e não competir com elas.
 
 ## Tokens
 
-Os tokens vivem em `src/styles/base.css` e devem ser usados em vez de valores
-novos e soltos.
+Na vitrine redesenhada, os tokens estão declarados no contêiner
+`.storefront` em `src/components/storefront.css`. A paleta definida para
+essa entrega usa off-white, preto, verde sálvia e lilás. As páginas
+anteriores ainda usam os tokens de `src/styles/base.css`.
 
 | Token | Uso |
 | --- | --- |

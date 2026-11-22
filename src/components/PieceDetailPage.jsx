@@ -1,8 +1,53 @@
+import { useState } from "react";
+import { pieceAvailability } from "../content/catalog.js";
 import { instagramDirectUrl } from "../content/siteContent.js";
-import { Footer } from "./Footer.jsx";
-import { Header } from "./Header.jsx";
-import { ExternalLink } from "./ExternalLink.jsx";
+import { StorefrontHeader } from "./Storefront.jsx";
 
 export function PieceDetailPage({ piece }) {
-  return <main><div className="detail-page"><Header /><article className="detail-content"><a className="text-link" href="/?pagina=catalogo">← Voltar ao catálogo</a><div className="detail-grid"><img src={`/portfolio/${piece.image}`} alt={piece.alt} /><div><p className="eyebrow">{piece.availability}</p><h1>{piece.name}</h1><p>{piece.details}</p><dl><div><dt>Material</dt><dd>{piece.material}</dd></div><div><dt>Origem</dt><dd>{piece.origin}</dd></div><div><dt>Medidas e capacidade</dt><dd>Confirmar com o ateliê</dd></div><div><dt>Cuidados</dt><dd>Confirmar com o ateliê</dd></div></dl><ExternalLink className="button button-dark" href={instagramDirectUrl}>Consultar pelo Direct</ExternalLink></div></div></article></div><Footer /></main>;
+  const [copied, setCopied] = useState(null);
+  const sold = piece.status === "sold";
+  const message = `Oi! Gostaria de saber mais sobre a peça ${piece.name}.`;
+  const photos = [{ image: piece.image, alt: piece.alt }, ...(piece.photos ?? [])];
+
+  async function copyMessage() {
+    try {
+      await navigator.clipboard.writeText(message);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return <div className="storefront">
+    <StorefrontHeader />
+    <main className="storefront-wrap storefront-section">
+      <a className="text-link" href="/?pagina=referencias">← Ver referências</a>
+      <article className="storefront-detail">
+        <div className="storefront-detail-photos">
+          {photos.map(({ image, alt }) => <img key={image} src={`/portfolio/${image}`} alt={alt} />)}
+        </div>
+        <div>
+          <h1>{piece.name}</h1>
+          <p>{pieceAvailability(piece)}</p>
+          {piece.details && <p>{piece.details}</p>}
+          <dl>
+            {piece.material && <><dt>Material</dt><dd>{piece.material}</dd></>}
+            {piece.origin && <><dt>Origem</dt><dd>{piece.origin}</dd></>}
+            {piece.measurements && <><dt>Medidas</dt><dd>{piece.measurements}</dd></>}
+            {piece.capacity && <><dt>Capacidade</dt><dd>{piece.capacity}</dd></>}
+          </dl>
+          {!sold && <>
+            <div className="storefront-actions">
+              <a className="storefront-button" href={instagramDirectUrl}>Consultar pelo Direct</a>
+              <button className="storefront-instagram" type="button" onClick={copyMessage}>Copiar mensagem</button>
+            </div>
+            <p className="storefront-detail-message" role="status">
+              {copied === true && "Mensagem copiada."}
+              {copied === false && <>Copie esta mensagem: {message}</>}
+            </p>
+          </>}
+        </div>
+      </article>
+    </main>
+  </div>;
 }

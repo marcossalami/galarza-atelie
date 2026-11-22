@@ -18,8 +18,9 @@ conteúdo ou canal de venda do ateliê.
 ## Escopo público atual
 
 - A experiência principal é em **português do Brasil**.
-- A página inicial apresenta o portfólio, categorias de peças, processo,
-  encomendas e a chamada para lançamentos.
+- A página inicial apresenta uma capa fotográfica, links para Instagram e
+  encomendas, peças com disponibilidade e preço confirmados e acesso à galeria
+  de referências. O catálogo é atualizado manualmente no repositório nesta etapa.
 - O perfil oficial é
   [@galarza.atelie](https://www.instagram.com/galarza.atelie/). O Instagram é
   o canal atual para acompanhar o processo e iniciar conversas sobre
