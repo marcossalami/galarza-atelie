@@ -2,7 +2,7 @@ import "./catalog-admin.css";
 
 export const adminSections = [
   { id: "capa", title: "Foto de capa", description: "Troque a primeira foto que aparece na loja.", icon: "▧" },
-  { id: "secoes", title: "Seções da página", description: "Escolha o que aparece e em que ordem.", icon: "☷" },
+  { id: "secoes", title: "Seções da página", description: "Crie galerias ou textos e organize a página.", icon: "☷" },
   { id: "destaques", title: "Peças em destaque", description: "Escolha quais peças aparecem primeiro.", icon: "✦" },
 ];
 

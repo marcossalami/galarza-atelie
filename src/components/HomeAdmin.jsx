@@ -2,28 +2,16 @@ import { useEffect, useState } from "react";
 import { preparePhoto, requestJson } from "./adminRequests.js";
 import { portfolioItems } from "../content/siteContent.js";
 import { AdminHeader, adminSections } from "./AdminPanel.jsx";
+import { HomeSectionsEditor, MoveButtons, moveItem } from "./HomeSectionsEditor.jsx";
 import "./catalog-admin.css";
 
 const endpoint = "/api/gestao/inicio";
-const labels = { available: "Peças disponíveis", references: "Referências" };
-
-function order(items, index, delta) {
-  const next = [...items];
-  [next[index], next[index + delta]] = [next[index + delta], next[index]];
-  return next;
-}
-
-function MoveButtons({ index, count, label, move }) {
-  return <>
-    <button type="button" disabled={index === 0} aria-label={`Subir ${label}`} onClick={() => move(-1)}>↑ Subir</button>
-    <button type="button" disabled={index === count - 1} aria-label={`Descer ${label}`} onClick={() => move(1)}>↓ Descer</button>
-  </>;
-}
 
 export function HomeAdmin({ initialSection }) {
   const [saved, setSaved] = useState(null);
   const [draft, setDraft] = useState(null);
   const [pieces, setPieces] = useState([]);
+  const [references, setReferences] = useState([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -43,11 +31,12 @@ export function HomeAdmin({ initialSection }) {
   useEffect(() => {
     const request = new AbortController();
     const options = { signal: request.signal };
-    Promise.all([requestJson(endpoint, options), requestJson("/api/pecas", options)])
-      .then(([home, catalog]) => {
+    Promise.all([requestJson(endpoint, options), requestJson("/api/pecas", options), requestJson("/api/referencias", options)])
+      .then(([home, catalog, portfolio]) => {
         setSaved(home);
         setDraft(home.draft);
         setPieces(catalog);
+        setReferences(portfolio);
       })
       .catch((reason) => { if (!request.signal.aborted) setError(reason.message); });
     return () => request.abort();
@@ -143,29 +132,15 @@ export function HomeAdmin({ initialSection }) {
             </label>
           </div>
         </fieldset>}
-        {section === "secoes" && <fieldset className="admin-surface" disabled={busy}>
-          <legend className="admin-visually-hidden">Organizar as seções</legend>
-          <p className="admin-hint">A capa fica no topo. Escolha a ordem das seções abaixo.</p>
-          <ol className="admin-ordered">
-            {draft.sections.map((item, index) => <li key={item.id}>
-              <div><strong>{labels[item.id]}</strong><span className="admin-row-status">{item.visible ? "Visível na página" : "Oculta na página"}</span></div>
-              <div className="admin-row-actions">
-                <MoveButtons index={index} count={draft.sections.length} label={labels[item.id]}
-                  move={(delta) => edit({ sections: order(draft.sections, index, delta) })} />
-                <button type="button" aria-label={`${item.visible ? "Ocultar" : "Mostrar"} ${labels[item.id]}`}
-                  onClick={() => edit({ sections: draft.sections.map((entry) => entry.id === item.id ? { ...entry, visible: !entry.visible } : entry) })}>
-                  {item.visible ? "Ocultar" : "Mostrar"}
-                </button>
-              </div>
-            </li>)}
-          </ol>
-        </fieldset>}
+        {section === "secoes" && <HomeSectionsEditor sections={draft.sections} catalog={[...pieces, ...references]}
+          busy={busy} onChange={(sections) => edit({ sections })} />}
         {section === "destaques" && <fieldset className="admin-surface" disabled={busy}>
           <legend className="admin-visually-hidden">Escolher peças em destaque</legend>
           {!pieces.length ? <div className="admin-empty">
             <strong>Nenhuma peça disponível para destacar</strong>
-            <p>Cadastre e publique uma peça para ela aparecer aqui.</p>
+            <p>Marque uma peça como disponível para venda ou crie uma galeria para mostrar referências.</p>
             <a className="admin-primary" href="/gestao?editar=pecas">Ir para minhas peças</a>
+            <button type="button" onClick={() => setSection("secoes")}>Ir para seções</button>
           </div> : <>
             {draft.highlights.length > 0 && <ol className="admin-ordered">
               {draft.highlights.map((id, index) => {
@@ -176,7 +151,7 @@ export function HomeAdmin({ initialSection }) {
                   <strong>{name}</strong>
                   <div className="admin-row-actions">
                     <MoveButtons index={index} count={draft.highlights.length} label={name}
-                      move={(delta) => edit({ highlights: order(draft.highlights, index, delta) })} />
+                      move={(delta) => edit({ highlights: moveItem(draft.highlights, index, delta) })} />
                     <button type="button" aria-label={`Retirar ${name} dos destaques`}
                       onClick={() => edit({ highlights: draft.highlights.filter((item) => item !== id) })}>Retirar</button>
                   </div>
@@ -209,7 +184,7 @@ export function HomeAdmin({ initialSection }) {
               <button type="button" aria-pressed={!mobile} onClick={() => setMobile(false)}>Computador</button>
             </div>
             <button type="button" className="admin-primary" disabled={busy}
-              onClick={() => { if (window.confirm("Publicar as alterações na loja de prévia?")) submit("publish"); }}>Publicar alterações</button>
+              onClick={() => { if (window.confirm("Publicar as alterações nesta loja?")) submit("publish"); }}>Publicar alterações</button>
           </div>
           <div className="home-preview-scroll">
             <iframe key={saved.revision} title="Prévia da página inicial" src="/gestao?ver=inicio"

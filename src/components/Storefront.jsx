@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getAvailablePieces, piecePrice, pieceUrl } from "../content/catalog.js";
 import { commissionsUrl, instagramUrl, portfolioItems } from "../content/siteContent.js";
 import "./storefront.css";
@@ -75,16 +75,31 @@ function referenceCard(item) {
   return <a className="storefront-card" href={item.id ? `/?publicada=${item.id}` : pieceUrl(item)} key={item.id ?? item.image}>
     <PortfolioPhoto item={item.id ? { photoUrl: `/api/pecas/${item.id}/foto`, alt: item.name } : item} loading="lazy" />
     <span>{item.name ?? item.caption}</span>
+    {item.priceInCents && <small>{piecePrice(item)}</small>}
   </a>;
 }
 
 const defaultSections = [{ id: "available", visible: true }, { id: "references", visible: true }];
 
 export function Storefront({ preview = false }) {
+  const main = useRef(null);
   const [published, setPublished] = useState([]);
   const [home, setHome] = useState(undefined);
   const [homeError, setHomeError] = useState(false);
   const publicReferences = useReferences();
+  useEffect(() => {
+    if (!main.current || !("IntersectionObserver" in window) ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const observer = new IntersectionObserver((entries) => {
+      for (const { target, isIntersecting } of entries) {
+        if (!isIntersecting) continue;
+        target.classList.add("storefront-appearing");
+        observer.unobserve(target);
+      }
+    }, { threshold: 0.1 });
+    for (const section of main.current.querySelectorAll(".storefront-home-section:not(.storefront-appearing)")) observer.observe(section);
+    return () => observer.disconnect();
+  }, [home, publicReferences, published]);
   useEffect(() => {
     const request = new AbortController();
     fetch("/api/pecas", { signal: request.signal })
@@ -122,7 +137,7 @@ export function Storefront({ preview = false }) {
       <small>{piecePrice(piece)}</small>
     </a>)}
   </div>;
-  const available = <section key="available" className="storefront-wrap storefront-section" id="disponiveis" tabIndex={-1} aria-labelledby="available-title">
+  const available = <section key="available" className="storefront-home-section storefront-wrap storefront-section" id="disponiveis" tabIndex={-1} aria-labelledby="available-title">
     <h2 id="available-title">Peças disponíveis</h2>
     {highlights.length > 0 && <div className="storefront-highlights">
       <h3>Em destaque</h3>
@@ -143,7 +158,7 @@ export function Storefront({ preview = false }) {
       const rank = (piece) => preferred.includes(piece.legacy_slug) ? preferred.indexOf(piece.legacy_slug) : preferred.length;
       return rank(left) - rank(right);
     }).slice(0, 3);
-  const references = <section key="references" className="storefront-reference-band" id="portfolio">
+  const references = <section key="references" className="storefront-home-section storefront-reference-band" id="portfolio">
     <div className="storefront-wrap storefront-section">
       <h2>Referências</h2>
       <div className="storefront-grid">
@@ -152,12 +167,29 @@ export function Storefront({ preview = false }) {
       <a className="text-link" href={referencesUrl}>Explorar galeria</a>
     </div>
   </section>;
+  const galleryCatalog = new Map([
+    ...published.map((piece) => [piece.slug, { ...piece, id: piece.slug }]),
+    ...(publicReferences ?? []).map((piece) => [piece.id, piece]),
+  ]);
+  const renderedSections = sections.filter(({ visible }) => visible).map((section) => {
+    if (section.id === "available") return available;
+    if (section.id === "references") return references;
+    const gallery = section.kind === "gallery";
+    const cards = gallery ? section.pieceIds.map((id) => galleryCatalog.get(id)).filter(Boolean) : [];
+    if (!section.title || (gallery ? !cards.length : !section.text)) return null;
+    return <section className={`storefront-home-section storefront-custom storefront-wrap storefront-section storefront-custom-${section.kind}`}
+      key={section.id} aria-labelledby={`home-section-${section.id}`}>
+      <h2 id={`home-section-${section.id}`}>{section.title}</h2>
+      {section.text && <p>{section.text}</p>}
+      {gallery && <div className="storefront-grid">{cards.map(referenceCard)}</div>}
+    </section>;
+  });
   return <div className="storefront" onClick={preview ? (event) => {
     const link = event.target.closest("a");
     if (link && !link.getAttribute("href")?.startsWith("#")) event.preventDefault();
   } : undefined}>
     <StorefrontHeader showAvailable={showAvailable} />
-    <main>
+    <main ref={main}>
       <section className="storefront-hero storefront-wrap" aria-labelledby="storefront-title">
         <div className="storefront-hero-copy">
           <h1 id="storefront-title">Galarza <br />Ateliê</h1>
@@ -174,7 +206,7 @@ export function Storefront({ preview = false }) {
           : <div className="storefront-cover-link">{cover}</div>}
       </section>
       {homeError && <p role="status" className="storefront-wrap">Não foi possível carregar a página inicial. Recarregue para tentar novamente.</p>}
-      {sections.filter(({ visible }) => visible).map(({ id }) => id === "available" ? available : references)}
+      {renderedSections}
     </main>
   </div>;
 }

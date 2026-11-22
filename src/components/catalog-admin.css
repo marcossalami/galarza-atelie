@@ -9,7 +9,7 @@
   font: 1rem/1.5 system-ui, sans-serif;
 }
 .admin-shell a { color: inherit; }
-.admin-shell :is(a, button, input, select, summary):focus-visible {
+.admin-shell :is(a, button, input, textarea, select, summary):focus-visible {
   outline: 3px solid #785193;
   outline-offset: 3px;
 }
@@ -73,7 +73,7 @@
 .admin-editor { max-width: 68rem; }
 .admin-editor-nav { display: flex; flex-wrap: wrap; gap: .4rem; }
 .admin-editor-nav button[aria-current="page"] { color: #fff; background: var(--accent); border-color: var(--accent); }
-.admin-shell :is(button, select, input:not([type=file]), .admin-primary) {
+.admin-shell :is(button, select, textarea, input:not([type=file]), .admin-primary) {
   font: inherit;
   min-height: 2.75rem;
   border: 1px solid var(--line);
@@ -126,6 +126,10 @@
 .admin-ordered li > :is(div:first-of-type, strong) { flex: 1 1 9rem; min-width: 0; overflow-wrap: anywhere; }
 .admin-row-status { display: block; color: #625961; font-size: .875rem; }
 .admin-row-actions, .piece-picker, .admin-action-bar > div { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; }
+.admin-sections > li > .admin-section-content { flex: 1 0 100%; display: grid; gap: .65rem; padding-block-start: .5rem; }
+.admin-section-content > label { display: grid; gap: .25rem; }
+.admin-section-content textarea { resize: vertical; }
+.admin-empty > button { margin-inline-start: .5rem; }
 .admin-hint { margin: 0 0 .75rem; color: #514b50; }
 .admin-select { display: grid; gap: .25rem; justify-items: start; margin-block-start: .9rem; }
 .admin-action-bar, .admin-preview-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem; }

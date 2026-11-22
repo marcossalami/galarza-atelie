@@ -1,17 +1,40 @@
 import { isJpeg, readJson } from "./request-body.js";
+import { builtInSections, customSectionLimit, galleryPieceLimit, sectionTextLimit, sectionTitleLimit } from "../src/content/homeSections.js";
 
 const pieceId = /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/;
+
+function validIds(ids, limit) {
+  return Array.isArray(ids) && ids.length <= limit &&
+    ids.every((id) => typeof id === "string" && pieceId.test(id)) && new Set(ids).size === ids.length;
+}
+
+function validSections(sections) {
+  if (!Array.isArray(sections) || sections.length > customSectionLimit + Object.keys(builtInSections).length) return false;
+  if (!sections.every((section) => section && typeof section.id === "string" && typeof section.visible === "boolean" &&
+      (Object.hasOwn(builtInSections, section.id) ||
+        (pieceId.test(section.id) && ["text", "gallery"].includes(section.kind) &&
+          typeof section.title === "string" && section.title.length <= sectionTitleLimit &&
+          typeof section.text === "string" && section.text.length <= sectionTextLimit &&
+          (section.kind === "text" || validIds(section.pieceIds, galleryPieceLimit)))))) return false;
+  const ids = new Set(sections.map(({ id }) => id));
+  return ids.size === sections.length && Object.keys(builtInSections).every((id) => ids.has(id));
+}
+
+function cleanSection({ id, visible, kind, title, text, pieceIds }) {
+  if (Object.hasOwn(builtInSections, id)) return { id, visible };
+  const section = { id, visible, kind, title: title.trim(), text: text.trim() };
+  return kind === "gallery" ? { ...section, pieceIds } : section;
+}
+
+function readyToPublish({ sections }) {
+  return sections.every((section) => !section.visible || Object.hasOwn(builtInSections, section.id) ||
+    (section.title && (section.kind === "gallery" ? section.pieceIds.length > 0 : section.text)));
+}
 
 function validHome(home) {
   return home && ["approved", "original", "upload"].includes(home.cover) &&
     (home.cover === "upload" ? isJpeg(home.photo, 450_000) : home.photo === null) &&
-    Array.isArray(home.sections) && home.sections.length === 2 &&
-    home.sections.every((section) =>
-      section && ["available", "references"].includes(section.id) && typeof section.visible === "boolean") &&
-    home.sections[0].id !== home.sections[1].id &&
-    Array.isArray(home.highlights) && home.highlights.length <= 100 &&
-    home.highlights.every((id) => typeof id === "string" && pieceId.test(id)) &&
-    new Set(home.highlights).size === home.highlights.length;
+    validSections(home.sections) && validIds(home.highlights, 100);
 }
 
 function adminState(row) {
@@ -49,13 +72,13 @@ export async function homeRoute(request, url, db, json, headers) {
       request.headers.get("Content-Type")?.split(";")[0] !== "application/json") {
     return json({ error: "Solicitação rejeitada." }, 403);
   }
-  const input = await readJson(request, 465_000);
+  const input = await readJson(request, 490_000);
   if (!input || !Number.isSafeInteger(input.revision)) return json({ error: "Confira os dados da edição." }, 400);
   let change;
   if (input.action === "save" && validHome(input.draft)) {
     const { cover, photo, sections, highlights } = input.draft;
     const draft = JSON.stringify({
-      cover, photo, sections: sections.map(({ id, visible }) => ({ id, visible })),
+      cover, photo, sections: sections.map(cleanSection),
     });
     change = db.prepare(`UPDATE home SET draft = json_set(?, '$.highlights', json((
       SELECT json_group_array(id) FROM (
@@ -66,6 +89,10 @@ export async function homeRoute(request, url, db, json, headers) {
     ))), revision = revision + 1 WHERE id = 1 AND revision = ?
     RETURNING draft, previous, revision`).bind(draft, JSON.stringify(highlights), input.revision);
   } else if (input.action === "publish") {
+    const row = await select.first();
+    if (row.revision === input.revision && !readyToPublish(JSON.parse(row.draft))) {
+      return json({ error: "Preencha o título e o conteúdo das seções visíveis antes de publicar." }, 400);
+    }
     change = db.prepare(`UPDATE home SET previous = published, published = draft, revision = revision + 1
       WHERE id = 1 AND revision = ? AND published <> draft
       RETURNING draft, previous, revision`).bind(input.revision);
