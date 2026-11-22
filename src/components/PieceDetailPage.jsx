@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { pieceAvailability, piecePrice, pieceSlug } from "../content/catalog.js";
 import { commissionsUrl } from "../content/siteContent.js";
 import { PhotoViewer } from "./PhotoViewer.jsx";
+import { PiecePhotoPreview } from "./PiecePhotoPreview.jsx";
 import { StorefrontHeader } from "./Storefront.jsx";
 
 export function PieceDetailPage({ piece }) {
@@ -11,19 +12,24 @@ export function PieceDetailPage({ piece }) {
   const price = piece.status === "available" ? piecePrice(piece) : null;
   const photos = [{ image: piece.image, alt: piece.alt }, ...(piece.photos ?? [])];
 
+  function openPhoto(index) {
+    setExpandedPhoto(index);
+    dialog.current.showModal();
+  }
+
   return <div className="storefront">
     <StorefrontHeader />
     <main className="storefront-wrap storefront-section">
       <a className="text-link" href="/?pagina=referencias">← Ver referências</a>
       <article className="storefront-detail">
         <div className="storefront-detail-photos">
-          {photos.map((photo, index) => <button className="storefront-zoom" type="button" key={photo.image} onClick={() => {
-            setExpandedPhoto(index);
-            dialog.current.showModal();
-          }}>
-            <img src={`/portfolio/${photo.image}`} alt={photo.alt} />
-            <span>Ampliar foto</span>
-          </button>)}
+          <PiecePhotoPreview photos={photos} onOpen={openPhoto} />
+          {photos.length > 1 && <div className="storefront-photo-thumbnails">
+            {photos.slice(1).map((photo, index) => <button className="storefront-zoom" type="button"
+              key={photo.image} aria-label={`Ampliar foto: ${photo.alt}`} onClick={() => openPhoto(index + 1)}>
+              <img src={`/portfolio/${photo.image}`} alt="" />
+            </button>)}
+          </div>}
         </div>
         <div>
           <h1>{piece.name}</h1>

@@ -48,7 +48,7 @@ describe("Vitrine pública", () => {
   it("mostra a peça associada e oferece o link quando copiar não é possível", async () => {
     window.history.replaceState(null, "", "/?pagina=encomendas&referencia=copo-estrelas");
     render(<App />);
-    expect(screen.getByRole("link", { name: "Abrir perfil no Instagram" })).toHaveAttribute("href", "https://www.instagram.com/galarza.atelie/");
+    expect(screen.getByRole("link", { name: "Mandar mensagem" })).toHaveAttribute("href", "https://www.instagram.com/galarza.atelie/");
     expect(screen.getByText("Copo estrelas")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Copiar link da peça" }));
     expect(await screen.findByText(/^https?:.*peca=copo-estrelas$/)).toBeInTheDocument();

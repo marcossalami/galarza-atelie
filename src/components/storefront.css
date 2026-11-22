@@ -50,6 +50,23 @@
 .storefront-detail h1 { font-size: clamp(2.7rem, 6vw, 5rem); margin-bottom: 1rem; }
 .storefront-detail-photos { display: grid; gap: .75rem; }
 .storefront-detail-photos img { display: block; width: 100%; border-radius: 1.25rem; }
+.storefront-zoom.storefront-inspection { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); isolation: isolate; overflow: hidden; aspect-ratio: 1; background: var(--paper); }
+.storefront-inspection img {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .18s ease-out, transform .23s ease-out, transform-origin .13s ease-out;
+}
+.storefront-inspection img[data-active="true"] { opacity: 1; z-index: 1; }
+.storefront-inspection[data-zoomed="true"] img[data-active="true"] { transform: translate(var(--inspection-x), var(--inspection-y)) scale(1.55); }
+.storefront-inspection span { z-index: 2; }
+.storefront-photo-thumbnails { display: flex; flex-wrap: wrap; gap: .6rem; }
+.storefront-photo-thumbnails button { width: 4.25rem; height: 4.25rem; }
+.storefront-photo-thumbnails img { height: 100%; object-fit: cover; }
 .storefront-detail-message { margin-top: .75rem; overflow-wrap: anywhere; }
 .storefront-contact p { max-width: 35rem; margin-top: 1.25rem; }
 .storefront-zoom { display: block; position: relative; padding: 0; border: 0; border-radius: 1.25rem; background: transparent; cursor: zoom-in; }
@@ -78,6 +95,7 @@
 @keyframes storefront-enter { from { opacity: 0; transform: translateY(.55rem) scale(.98); } }
 @media (prefers-reduced-motion: reduce) {
   .storefront *, .storefront *::before, .storefront *::after { animation: none !important; transition: none !important; }
+  .storefront-inspection[data-zoomed="true"] img[data-active="true"] { transform: scale(1.55); }
 }
 @media (max-width: 700px) {
   .storefront-hero, .storefront-detail { grid-template-columns: 1fr; }
