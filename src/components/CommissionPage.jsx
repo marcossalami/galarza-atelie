@@ -31,6 +31,7 @@ export function CommissionPage({ piece }) {
         <a className="storefront-button" href={instagramUrl}>Mandar mensagem</a>
         {piece && <button className="storefront-instagram" type="button" onClick={copyLink}>Copiar link da peça</button>}
       </div>
+      <p>Se o navegador pedir login, você também pode abrir o app do Instagram e buscar <strong>@galarza.atelie</strong>.</p>
       <p className="storefront-detail-message" role="status">
         {copied === true && "Link copiado. Cole na conversa do Instagram."}
         {copied === false && <a className="text-link" href={referenceUrl}>{referenceUrl}</a>}

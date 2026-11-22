@@ -32,7 +32,11 @@ export function PiecePhotoPreview({ photos, onOpen }) {
     {photos.map((photo, index) => <img key={photo.image} src={`/portfolio/${photo.image}`}
       alt="" aria-hidden="true" decoding="async" fetchPriority={index === 0 ? "high" : undefined}
       data-active={index === visible}
-      style={{ transformOrigin: `${view.x}% ${view.y}%` }}
+      style={{
+        transformOrigin: `${view.x}% ${view.y}%`,
+        "--inspection-x": photos.length === 1 ? `${(50 - view.x) * 0.06}px` : "0px",
+        "--inspection-y": photos.length === 1 ? `${(50 - view.y) * 0.06}px` : "0px",
+      }}
       onLoad={() => setLoaded((previous) => new Set(previous).add(photo.image))} />)}
     <span>Ampliar foto</span>
   </button>;

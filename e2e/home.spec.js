@@ -74,6 +74,9 @@ test("o ponteiro explora os ângulos reais, aproxima e restaura a primeira foto"
   const box = await preview.boundingBox();
   await page.mouse.move(box.x + box.width * 0.95, box.y + box.height * 0.45);
   await expect(preview).toHaveAttribute("data-angle", "2");
+  const alternate = preview.locator('img[data-active="true"]');
+  await expect(alternate).toHaveCSS("opacity", "1");
+  expect((await alternate.boundingBox()).y).toBeCloseTo(box.y, 0);
   await page.mouse.move(box.x + box.width * 0.42, box.y + box.height * 0.55);
   const active = preview.locator('img[data-active="true"]');
   await expect(active).toHaveCSS("transform", "matrix(1.55, 0, 0, 1.55, 0, 0)");
