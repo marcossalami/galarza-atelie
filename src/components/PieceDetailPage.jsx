@@ -4,12 +4,14 @@ import { commissionsUrl } from "../content/siteContent.js";
 import { PhotoViewer } from "./PhotoViewer.jsx";
 import { PiecePhotoPreview } from "./PiecePhotoPreview.jsx";
 import { StorefrontHeader } from "./Storefront.jsx";
+import { RelatedPieces } from "./RelatedPieces.jsx";
 
 export function PieceDetailPage({ piece }) {
   const [expandedPhoto, setExpandedPhoto] = useState(null);
   const dialog = useRef(null);
   const sold = piece.status === "sold";
   const price = piece.status === "available" ? piecePrice(piece) : null;
+  const orderUrl = `${commissionsUrl}&${piece.photoUrl ? "referenciaPublicada" : "referencia"}=${encodeURIComponent(pieceSlug(piece))}`;
   const photos = [{ image: piece.image, alt: piece.alt, url: piece.photoUrl }, ...(piece.photos ?? [])];
 
   function openPhoto(index) {
@@ -43,11 +45,12 @@ export function PieceDetailPage({ piece }) {
             <dt>Medidas</dt><dd>{piece.measurements || "Sob consulta"}</dd>
             {piece.capacity && <><dt>Capacidade</dt><dd>{piece.capacity}</dd></>}
           </dl>
-          {!sold && <a className="storefront-button" href={`${commissionsUrl}&${piece.photoUrl ? "referenciaPublicada" : "referencia"}=${encodeURIComponent(pieceSlug(piece))}`}>
-            Encomendar com esta referência
+          {!sold && <a className="storefront-button" href={price ? `${orderUrl}&comprar=1` : orderUrl}>
+            {price ? "Comprar esta peça" : "Encomendar com esta referência"}
           </a>}
         </div>
       </article>
+      <RelatedPieces piece={piece} />
       <PhotoViewer dialog={dialog} photos={photos} index={expandedPhoto} onSelect={setExpandedPhoto} onClose={() => setExpandedPhoto(null)} />
     </main>
   </div>;

@@ -4,6 +4,7 @@ export const adminSections = [
   { id: "capa", title: "Foto de capa", description: "Troque a primeira foto que aparece na loja.", icon: "▧" },
   { id: "secoes", title: "Seções da página", description: "Crie galerias ou textos e organize a página.", icon: "☷" },
   { id: "destaques", title: "Peças em destaque", description: "Escolha quais peças aparecem primeiro.", icon: "✦" },
+  { id: "textos", title: "Textos das páginas", description: "Edite o Início, o Sobre e os textos da loja.", icon: "Aa" },
 ];
 
 export function AdminHeader({ back = true }) {
@@ -42,7 +43,7 @@ export function AdminPanel() {
           <span className="admin-card-arrow" aria-hidden="true">↗</span>
         </a>)}
       </div>
-      <a className="admin-review-link" href="/gestao?editar=inicio&parte=previa">Conferir a página inicial e publicar <span aria-hidden="true">→</span></a>
+      <a className="admin-review-link" href="/gestao?editar=inicio&parte=previa">Conferir e publicar alterações <span aria-hidden="true">→</span></a>
     </main>
   </div>;
 }

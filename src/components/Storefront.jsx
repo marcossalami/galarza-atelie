@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { getAvailablePieces, piecePrice, pieceUrl } from "../content/catalog.js";
 import { commissionsUrl, instagramUrl, portfolioItems } from "../content/siteContent.js";
+import { pageCopy } from "../content/pageCopy.js";
+import { usePageCopy } from "./PageCopyContext.js";
 import "./storefront.css";
 
 const referencesUrl = "/?pagina=referencias";
@@ -62,6 +64,7 @@ export function StorefrontHeader({ showAvailable } = {}) {
         }}>Peças disponíveis</a>}
         <a href={referencesUrl}>Referências</a>
         <a href={commissionsUrl}>Encomendas</a>
+        <a href="/?pagina=atelie">Sobre o ateliê</a>
       </nav>
     </details>
   </header>;
@@ -121,6 +124,7 @@ export function Storefront({ preview = false }) {
   if (preview && !home) return <p role="status">{homeError ? "Prévia indisponível. Entre novamente na gestão." : "Carregando prévia…"}</p>;
 
   const sections = home === null ? defaultSections : (home?.sections ?? []);
+  const copy = home?.pages?.inicio ?? pageCopy.inicio;
   const showAvailable = sections.some(({ id, visible }) => id === "available" && visible);
   const highlights = (home?.highlights ?? []).map((id) => pieces.find((piece) => piece.slug === id)).filter(Boolean);
   const rest = pieces.filter((piece) => !highlights.includes(piece));
@@ -191,20 +195,20 @@ export function Storefront({ preview = false }) {
     <StorefrontHeader showAvailable={showAvailable} />
     <main ref={main}>
       <section className="storefront-hero storefront-wrap" aria-labelledby="storefront-title">
-        <div className="storefront-hero-copy">
-          <h1 id="storefront-title">Galarza <br />Ateliê</h1>
-          <p>Cerâmicas feitas à mão.</p>
-          <div className="storefront-actions" id="encomendas">
-            <a className="storefront-button" href={commissionsUrl}>Encomendar</a>
-            <a className="storefront-instagram" href={instagramUrl}>
-              <span className="storefront-instagram-icon" aria-hidden="true" />Instagram
-            </a>
-          </div>
-        </div>
         {coverLink ? <a className="storefront-cover-link" href={coverLink}
           aria-label={home ? "Ver peças disponíveis" : "Ver detalhes das canecas da capa"}>{cover}</a>
           : <div className="storefront-cover-link">{cover}</div>}
+        <div className="storefront-hero-copy">
+          <h1 id="storefront-title">{copy.title}</h1>
+          <div className="storefront-actions" id="encomendas">
+            <a className="storefront-button" href={commissionsUrl}>Encomendar</a>
+            <a className="storefront-instagram" href={instagramUrl} aria-label="Mensagem no Instagram">
+              <span className="storefront-instagram-icon" aria-hidden="true" />Mensagem
+            </a>
+          </div>
+        </div>
       </section>
+      {copy.text && <p className="storefront-wrap storefront-home-intro storefront-page-copy">{copy.text}</p>}
       {homeError && <p role="status" className="storefront-wrap">Não foi possível carregar a página inicial. Recarregue para tentar novamente.</p>}
       {renderedSections}
     </main>
@@ -213,6 +217,7 @@ export function Storefront({ preview = false }) {
 
 export function ReferencesPage() {
   const items = useReferences();
+  const copy = usePageCopy("referencias");
   const byFormat = new Map();
   for (const item of items ?? []) {
     const name = referenceLabels[item.format.toLocaleLowerCase("pt-BR")] ?? item.format;
@@ -226,7 +231,8 @@ export function ReferencesPage() {
   return <div className="storefront">
     <StorefrontHeader />
     <main className="storefront-wrap storefront-section storefront-gallery">
-      <h1>Referências</h1>
+      <h1>{copy.title}</h1>
+      {copy.text && <p className="storefront-page-copy">{copy.text}</p>}
       <a className="storefront-button" href={commissionsUrl}>Encomendar</a>
       {items?.length === 0 && <p>Nenhuma referência disponível no momento.</p>}
       {groups.map(({ name, pieces }) => <section className="storefront-group" key={name}>

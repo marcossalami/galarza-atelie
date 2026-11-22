@@ -18,7 +18,7 @@ describe("Vitrine pública", () => {
     vi.spyOn(catalog, "getAvailablePieces").mockReturnValue([]);
     render(<App />);
     expect(screen.getByRole("heading", { name: "Galarza Ateliê" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Instagram" })).toHaveAttribute("href", "https://www.instagram.com/galarza.atelie/");
+    expect(screen.getByRole("link", { name: "Mensagem no Instagram" })).toHaveAttribute("href", "https://www.instagram.com/galarza.atelie/");
     expect(await screen.findByText("Sem peças disponíveis no momento.")).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Encomendar" })).toHaveLength(2);
     expect(screen.getByRole("link", { name: "Ver referências" })).toHaveAttribute("href", "/?pagina=referencias");

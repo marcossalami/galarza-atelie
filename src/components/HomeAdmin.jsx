@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { preparePhoto, requestJson } from "./adminRequests.js";
 import { portfolioItems } from "../content/siteContent.js";
+import { pageCopy, pageTitleLimit, pageTextLimit } from "../content/pageCopy.js";
 import { AdminHeader, adminSections } from "./AdminPanel.jsx";
 import { HomeSectionsEditor, MoveButtons, moveItem } from "./HomeSectionsEditor.jsx";
 import "./catalog-admin.css";
@@ -19,6 +20,8 @@ export function HomeAdmin({ initialSection }) {
     initialSection === "previa" || adminSections.some(({ id }) => id === initialSection) ? initialSection : "capa",
   );
   const [mobile, setMobile] = useState(true);
+  const [editingPage, setEditingPage] = useState("atelie");
+  const [previewPage, setPreviewPage] = useState("inicio");
   const dirty = Boolean(draft && draft !== saved?.draft);
 
   useEffect(() => {
@@ -65,6 +68,10 @@ export function HomeAdmin({ initialSection }) {
   }
 
   async function submit(action) {
+    if (action === "save" && Object.values(draft.pages ?? {}).some(({ title }) => !title.trim())) {
+      setError("Preencha o título das páginas editadas antes de salvar.");
+      return false;
+    }
     setBusy(true);
     setError("");
     setMessage("");
@@ -91,9 +98,17 @@ export function HomeAdmin({ initialSection }) {
   }
 
   async function openPreview() {
-    if (!dirty || await submit("save")) setSection("previa");
+    if (!dirty || await submit("save")) {
+      if (section !== "previa") setPreviewPage(section === "textos" ? editingPage : "inicio");
+      setSection("previa");
+    }
   }
 
+  const pageText = draft?.pages?.[editingPage] ?? pageCopy[editingPage];
+  function setPageText(fields) {
+    const { title, text } = pageText;
+    edit({ pages: { ...draft.pages, [editingPage]: { title, text, ...fields } } });
+  }
   const originalPhoto = `/portfolio/${portfolioItems[0].image}`;
   const approvedPhoto = "/galarza-capa-acervo.jpg";
   const cover = draft?.cover === "upload" ? `data:image/jpeg;base64,${draft.photo}`
@@ -134,6 +149,19 @@ export function HomeAdmin({ initialSection }) {
         </fieldset>}
         {section === "secoes" && <HomeSectionsEditor sections={draft.sections} catalog={[...pieces, ...references]}
           busy={busy} onChange={(sections) => edit({ sections })} />}
+        {section === "textos" && <fieldset className="admin-surface admin-page-copy" disabled={busy}>
+          <legend className="admin-visually-hidden">Editar texto de uma página</legend>
+          <label>Página<select value={editingPage} onChange={(event) => setEditingPage(event.currentTarget.value)}>
+            {Object.entries(pageCopy).map(([id, { label }]) => <option key={id} value={id}>{label}</option>)}
+          </select></label>
+          <label>{editingPage === "inicio" ? "Nome na capa" : "Título da página"}
+            <input value={pageText.title} maxLength={pageTitleLimit} onChange={(event) => setPageText({ title: event.currentTarget.value })} />
+          </label>
+          <label>{editingPage === "inicio" ? "Texto abaixo da capa (opcional)" : "Texto principal"}
+            <textarea rows={5} value={pageText.text} maxLength={pageTextLimit}
+              onChange={(event) => setPageText({ text: event.currentTarget.value })} />
+          </label>
+        </fieldset>}
         {section === "destaques" && <fieldset className="admin-surface" disabled={busy}>
           <legend className="admin-visually-hidden">Escolher peças em destaque</legend>
           {!pieces.length ? <div className="admin-empty">
@@ -177,8 +205,13 @@ export function HomeAdmin({ initialSection }) {
             </button>
           </div>
         </div>}
-        {section === "previa" && <section className="home-preview admin-surface" aria-label="Prévia da página inicial">
+        {section === "previa" && <section className="home-preview admin-surface" aria-label="Prévia da loja">
           <div className="admin-preview-tools">
+            <label className="admin-preview-page">Página na prévia
+              <select value={previewPage} onChange={(event) => setPreviewPage(event.currentTarget.value)}>
+                {Object.entries(pageCopy).map(([id, { label }]) => <option key={id} value={id}>{label}</option>)}
+              </select>
+            </label>
             <div className="admin-row-actions" aria-label="Tamanho da prévia">
               <button type="button" aria-pressed={mobile} onClick={() => setMobile(true)}>Celular</button>
               <button type="button" aria-pressed={!mobile} onClick={() => setMobile(false)}>Computador</button>
@@ -187,7 +220,8 @@ export function HomeAdmin({ initialSection }) {
               onClick={() => { if (window.confirm("Publicar as alterações nesta loja?")) submit("publish"); }}>Publicar alterações</button>
           </div>
           <div className="home-preview-scroll">
-            <iframe key={saved.revision} title="Prévia da página inicial" src="/gestao?ver=inicio"
+            <iframe key={`${saved.revision}-${previewPage}`} title={`Prévia · ${pageCopy[previewPage].label}`}
+              src={previewPage === "inicio" ? "/gestao?ver=inicio" : `/gestao?ver=inicio&pagina=${previewPage}`}
               className={mobile ? "home-preview-mobile" : "home-preview-desktop"} />
           </div>
           {saved.canRestore && <details className="admin-restore">

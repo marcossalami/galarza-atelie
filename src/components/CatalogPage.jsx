@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { catalogCategories, catalogItems, pieceAvailability } from "../content/catalog.js";
 import { Footer } from "./Footer.jsx";
 import { Header } from "./Header.jsx";
+import { pageCopy } from "../content/pageCopy.js";
+import { usePageCopy } from "./PageCopyContext.js";
 
 function catalogEntry(piece) {
   const type = piece.format.toLocaleLowerCase("pt-BR");
@@ -12,6 +14,7 @@ function catalogEntry(piece) {
 }
 
 export function CatalogPage() {
+  const copy = usePageCopy("catalogo");
   const [category, setCategory] = useState(catalogCategories[0].id);
   const [catalog, setCatalog] = useState(null);
   useEffect(() => {
@@ -32,8 +35,8 @@ export function CatalogPage() {
       <Header />
       <section className="catalog-content" aria-labelledby="catalog-title">
         <p className="eyebrow">catálogo</p>
-        <h1 id="catalog-title">Peças feitas<br />sem <i>repetição.</i></h1>
-        <p className="catalog-intro">Cada foto registra uma peça do ateliê. A disponibilidade é confirmada diretamente com a artista, antes de qualquer reserva.</p>
+        <h1 id="catalog-title">{copy.title === pageCopy.catalogo.title ? <>Peças feitas<br />sem <i>repetição.</i></> : copy.title}</h1>
+        {copy.text && <p className="catalog-intro storefront-page-copy">{copy.text}</p>}
         <div className="catalog-tabs" role="tablist" aria-label="Categorias de peças">
           {catalogCategories.map((item) => <button className={category === item.id ? "is-active" : ""}
             role="tab" aria-selected={category === item.id} key={item.id} onClick={() => setCategory(item.id)}>{item.label}</button>)}

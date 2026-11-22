@@ -1,5 +1,6 @@
 import { isJpeg, readJson } from "./request-body.js";
 import { builtInSections, customSectionLimit, galleryPieceLimit, sectionTextLimit, sectionTitleLimit } from "../src/content/homeSections.js";
+import { pageCopy, pageTextLimit, pageTitleLimit } from "../src/content/pageCopy.js";
 
 const pieceId = /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/;
 
@@ -31,10 +32,18 @@ function readyToPublish({ sections }) {
     (section.title && (section.kind === "gallery" ? section.pieceIds.length > 0 : section.text)));
 }
 
+function validPageCopy(pages) {
+  if (pages === undefined) return true;
+  return pages && typeof pages === "object" && !Array.isArray(pages) &&
+    Object.entries(pages).every(([id, content]) => Object.hasOwn(pageCopy, id) &&
+      content && typeof content.title === "string" && content.title.trim() && content.title.length <= pageTitleLimit &&
+      typeof content.text === "string" && content.text.length <= pageTextLimit);
+}
+
 function validHome(home) {
   return home && ["approved", "original", "upload"].includes(home.cover) &&
     (home.cover === "upload" ? isJpeg(home.photo, 450_000) : home.photo === null) &&
-    validSections(home.sections) && validIds(home.highlights, 100);
+    validSections(home.sections) && validIds(home.highlights, 100) && validPageCopy(home.pages);
 }
 
 function adminState(row) {
@@ -72,13 +81,15 @@ export async function homeRoute(request, url, db, json, headers) {
       request.headers.get("Content-Type")?.split(";")[0] !== "application/json") {
     return json({ error: "Solicitação rejeitada." }, 403);
   }
-  const input = await readJson(request, 490_000);
+  const input = await readJson(request, 520_000);
   if (!input || !Number.isSafeInteger(input.revision)) return json({ error: "Confira os dados da edição." }, 400);
   let change;
   if (input.action === "save" && validHome(input.draft)) {
-    const { cover, photo, sections, highlights } = input.draft;
+    const { cover, photo, sections, highlights, pages } = input.draft;
     const draft = JSON.stringify({
       cover, photo, sections: sections.map(cleanSection),
+      ...(pages && { pages: Object.fromEntries(Object.entries(pages).map(([id, { title, text }]) =>
+        [id, { title: title.trim(), text: text.trim() }])) }),
     });
     change = db.prepare(`UPDATE home SET draft = json_set(?, '$.highlights', json((
       SELECT json_group_array(id) FROM (

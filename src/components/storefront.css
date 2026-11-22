@@ -21,13 +21,42 @@
 .storefront-header nav { position: absolute; top: 3.6rem; right: 0; width: 13rem; padding: .4rem; border: 1px solid; border-radius: 1rem; background: var(--paper); box-shadow: 0 8px 24px #26232122; }
 .storefront-header nav a { display: block; padding: .55rem .8rem; border-radius: .65rem; }
 .storefront-header nav a:hover { background: var(--lilac); }
-.storefront-hero { display: grid; grid-template-columns: 1fr 1fr; background: var(--lilac); border: 1px solid; border-radius: 2rem 2rem 3rem 1.4rem; overflow: hidden; }
-.storefront-hero-copy { align-self: center; padding: clamp(1.2rem, 5vw, 4rem); background: radial-gradient(#53406b24 1px, transparent 1px) 0 0 / 17px 17px; }
-.storefront-hero h1::after { content: ""; display: block; width: 3.4rem; height: .7rem; margin: .85rem 0 0 .15rem; border-bottom: 3px solid; border-radius: 0 0 53% 44%; transform: rotate(-7deg); }
-.storefront-hero p { margin: 1rem 0 1.35rem; }
-.storefront-cover { display: block; width: 100%; height: 100%; min-height: 22rem; object-fit: cover; object-position: center 48%; }
-.storefront-cover-link { display: block; min-width: 0; }
+.storefront-hero {
+  position: relative;
+  display: grid;
+  aspect-ratio: 5 / 4;
+  isolation: isolate;
+  background: #52604d;
+  border: 1px solid var(--ink);
+  border-radius: 1.5rem 1.5rem 2.5rem 1.25rem;
+  overflow: hidden;
+}
+.storefront-hero::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(180deg, #191412aa, #19141266 20%, transparent 52%);
+  pointer-events: none;
+}
+.storefront-hero-copy {
+  z-index: 2;
+  grid-area: 1 / 1;
+  align-self: start;
+  padding: clamp(.75rem, 3vw, 2.25rem);
+  color: #fffaf0;
+  text-align: center;
+  pointer-events: none;
+}
+.storefront-hero-copy h1 { font-size: clamp(1.9rem, 7vw, 6.25rem); text-wrap: balance; overflow-wrap: anywhere; text-shadow: 0 2px 10px #292018b3; }
+.storefront-hero-copy .storefront-actions { justify-content: center; gap: .45rem .65rem; margin-top: clamp(.35rem, 1.5vw, 1rem); }
+.storefront-hero-copy a { pointer-events: auto; }
+.storefront-hero-copy .storefront-instagram { color: var(--ink); }
+.storefront-cover { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 50%; }
+.storefront-cover-link { display: block; grid-area: 1 / 1; min-width: 0; min-height: 0; }
 .storefront-cover-link:focus-visible { outline-offset: -5px; }
+.storefront-page-copy { max-width: 52ch; white-space: pre-line; overflow-wrap: anywhere; }
+.storefront-home-intro { text-align: center; margin-block: 1.4rem 0; }
 .storefront-highlights { margin-block-end: 2rem; }
 .storefront-custom p { max-width: 48ch; white-space: pre-line; }
 .storefront-custom-text { text-align: center; }
@@ -65,7 +94,10 @@
 .storefront-gallery > .storefront-button { margin-block: 1.25rem; }
 .storefront-group { margin-top: 2.5rem; }
 .storefront-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem; align-items: start; }
-.storefront-detail h1 { font-size: clamp(2.7rem, 6vw, 5rem); margin-bottom: 1rem; }
+.storefront-detail > * { min-width: 0; }
+.storefront-detail h1 { font-size: clamp(2.45rem, 5.5vw, 5rem); margin-bottom: 1rem; overflow-wrap: anywhere; }
+.storefront-related { margin-top: clamp(2.75rem, 7vw, 5rem); padding-top: 1.5rem; border-top: 1px solid #2623213d; }
+.storefront-about p, .storefront-gallery > .storefront-page-copy { margin-block: 1.25rem; }
 .storefront-detail-photos { display: grid; gap: .75rem; }
 .storefront-detail-photos img { display: block; width: 100%; border-radius: 1.25rem; }
 .storefront-zoom.storefront-inspection { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); isolation: isolate; overflow: hidden; aspect-ratio: 1; background: var(--paper); }
@@ -116,8 +148,6 @@
   .storefront-inspection[data-zoomed="true"] img[data-active="true"] { transform: scale(1.55); }
 }
 @media (max-width: 700px) {
-  .storefront-hero, .storefront-detail { grid-template-columns: 1fr; }
-  .storefront-cover-link { order: -1; }
-  .storefront-cover { min-height: 0; height: auto; aspect-ratio: 5/4; }
+  .storefront-detail { grid-template-columns: 1fr; }
   .storefront-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1.25rem .8rem; }
 }
