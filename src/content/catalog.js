@@ -42,3 +42,9 @@ export function piecePrice(piece) {
 export function getAvailablePieces() {
   return catalogItems.filter((piece) => piece.status === "available" && piecePrice(piece));
 }
+
+export function pieceAvailability(piece) {
+  if (piece.status === "sold") return "Vendida";
+  if (piece.status === "available" && piecePrice(piece)) return piecePrice(piece);
+  return piece.availability ?? "Disponibilidade sob consulta";
+}

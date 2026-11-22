@@ -1,6 +1,6 @@
 # Galarza Ateliê — site independente
 
-Este é um site Vite estático, pronto para ser hospedado no Cloudflare Pages. Não usa API, banco de dados, checkout, analytics ou serviços do ChatGPT.
+Este é um site Vite estático publicado pelo Cloudflare Workers. Não usa API, banco de dados, checkout, analytics ou serviços do ChatGPT.
 
 As decisões confirmadas do produto e os pontos que ainda dependem da artista
 estão em [docs/briefing.md](docs/briefing.md).

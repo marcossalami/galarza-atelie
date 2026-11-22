@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { piecePrice } from "../content/catalog.js";
+import { pieceAvailability } from "../content/catalog.js";
 import { instagramDirectUrl } from "../content/siteContent.js";
 import { StorefrontHeader } from "./Storefront.jsx";
 
 export function PieceDetailPage({ piece }) {
   const [copied, setCopied] = useState(null);
-  const price = piecePrice(piece);
   const sold = piece.status === "sold";
   const message = `Oi! Gostaria de saber mais sobre a peça ${piece.name}.`;
   const photos = [{ image: piece.image, alt: piece.alt }, ...(piece.photos ?? [])];
@@ -29,7 +28,7 @@ export function PieceDetailPage({ piece }) {
         </div>
         <div>
           <h1>{piece.name}</h1>
-          <p>{sold ? "Vendida" : piece.status === "available" && price ? price : piece.availability}</p>
+          <p>{pieceAvailability(piece)}</p>
           {piece.details && <p>{piece.details}</p>}
           <dl>
             {piece.material && <><dt>Material</dt><dd>{piece.material}</dd></>}
@@ -42,9 +41,10 @@ export function PieceDetailPage({ piece }) {
               <a className="storefront-button" href={instagramDirectUrl}>Consultar pelo Direct</a>
               <button className="storefront-instagram" type="button" onClick={copyMessage}>Copiar mensagem</button>
             </div>
-            {copied !== null && <p className="storefront-detail-message" role="status">
-              {copied ? "Mensagem copiada." : <>Copie esta mensagem: {message}</>}
-            </p>}
+            <p className="storefront-detail-message" role="status">
+              {copied === true && "Mensagem copiada."}
+              {copied === false && <>Copie esta mensagem: {message}</>}
+            </p>
           </>}
         </div>
       </article>

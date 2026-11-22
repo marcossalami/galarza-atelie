@@ -25,7 +25,7 @@ export function StorefrontHeader() {
         <a href="/">Início</a>
         <a href="/#disponiveis" onClick={(event) => {
           const section = document.getElementById("disponiveis");
-          if (section) {
+          if (section && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
             section.focus({ preventScroll: true });
             event.currentTarget.closest("details").open = false;
           }
@@ -49,7 +49,7 @@ export function Storefront() {
         <div className="storefront-hero-copy">
           <h1 id="storefront-title">Galarza <br />Ateliê</h1>
           <p>Cerâmicas feitas à mão.</p>
-          <div className="storefront-actions">
+          <div className="storefront-actions" id="encomendas">
             <a className="storefront-button" href={instagramDirectUrl}>Encomendar</a>
             <a className="storefront-instagram" href={instagramUrl}>
               <span className="storefront-instagram-icon" aria-hidden="true" />Instagram
@@ -74,7 +74,7 @@ export function Storefront() {
           </div>
         </>}
       </section>
-      <section className="storefront-reference-band">
+      <section className="storefront-reference-band" id="portfolio">
         <div className="storefront-wrap storefront-section">
           <h2>Referências</h2>
           <div className="storefront-grid">
