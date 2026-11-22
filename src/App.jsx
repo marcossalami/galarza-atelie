@@ -1,6 +1,5 @@
 import { AboutPage } from "./components/AboutPage.jsx";
 import { CatalogPage } from "./components/CatalogPage.jsx";
-import { PieceDetailPage } from "./components/PieceDetailPage.jsx";
 import { getCatalogItem } from "./content/catalog.js";
 import { Storefront, ReferencesPage } from "./components/Storefront.jsx";
 import { CommissionPage } from "./components/CommissionPage.jsx";
@@ -20,7 +19,7 @@ export default function App() {
   const piece = getCatalogItem(params.get("peca"));
 
   if (piece) {
-    return <PieceDetailPage piece={piece} />;
+    return <PublishedPiece id={params.get("peca")} fallback={piece} />;
   }
 
   if (params.get("pagina") === "atelie") {

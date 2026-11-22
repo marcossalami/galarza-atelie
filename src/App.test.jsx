@@ -32,20 +32,20 @@ describe("Vitrine pública", () => {
     expect(await screen.findByRole("link", { name: /copo estrelas.*125,00/i })).toHaveAttribute("href", "/?peca=copo-estrelas");
   });
 
-  it("preserva o link da peça vendida e oferece acesso às referências", () => {
+  it("preserva o link da peça vendida e oferece acesso às referências", async () => {
     const piece = catalog.getCatalogItem("copo-estrelas");
     vi.spyOn(catalog, "getCatalogItem").mockReturnValue({ ...piece, status: "sold", priceInCents: 12500 });
     window.history.replaceState(null, "", "/?peca=copo-estrelas");
     render(<App />);
-    expect(screen.getByText("Vendida")).toBeInTheDocument();
+    expect(await screen.findByText("Vendida")).toBeInTheDocument();
     expect(screen.queryByText(/125,00/)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /ver referências/i })).toBeInTheDocument();
   });
 
-  it("mostra trabalhos feitos por formato sem preço", () => {
+  it("mostra trabalhos feitos por formato sem preço", async () => {
     window.history.replaceState(null, "", "/?pagina=referencias");
     render(<App />);
-    expect(screen.getByRole("heading", { name: "Copos" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Copos" })).toBeInTheDocument();
     expect(screen.getByAltText("Caneca preta com aranha e alça em forma de teia")).toBeInTheDocument();
     expect(screen.queryByText(/R\$/)).not.toBeInTheDocument();
   });

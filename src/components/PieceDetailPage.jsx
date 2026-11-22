@@ -26,8 +26,8 @@ export function PieceDetailPage({ piece }) {
           <PiecePhotoPreview photos={photos} onOpen={openPhoto} />
           {photos.length > 1 && <div className="storefront-photo-thumbnails">
             {photos.slice(1).map((photo, index) => <button className="storefront-zoom" type="button"
-              key={photo.image} aria-label={`Ampliar foto: ${photo.alt}`} onClick={() => openPhoto(index + 1)}>
-              <img src={`/portfolio/${photo.image}`} alt="" />
+              key={photo.url ?? photo.image} aria-label={`Ampliar foto: ${photo.alt}`} onClick={() => openPhoto(index + 1)}>
+              <img src={photo.url ?? `/portfolio/${photo.image}`} alt="" />
             </button>)}
           </div>}
         </div>
@@ -36,10 +36,11 @@ export function PieceDetailPage({ piece }) {
           <p>{sold ? "Vendida" : piece.availability ?? (price ? "Disponível" : pieceAvailability(piece))}</p>
           {piece.details && <p>{piece.details}</p>}
           <dl>
-            {!sold && <><dt>Preço</dt><dd>{price ?? "Sob consulta"}</dd></>}
+            {!sold && piece.status !== "reference" && <><dt>Preço</dt><dd>{price ?? "Sob consulta"}</dd></>}
+            {piece.format && <><dt>Tipo</dt><dd>{piece.format}</dd></>}
             {piece.material && <><dt>Material</dt><dd>{piece.material}</dd></>}
             {piece.origin && <><dt>Origem</dt><dd>{piece.origin}</dd></>}
-            <dt>Medidas</dt><dd>{piece.measurements ?? "Sob consulta"}</dd>
+            <dt>Medidas</dt><dd>{piece.measurements || "Sob consulta"}</dd>
             {piece.capacity && <><dt>Capacidade</dt><dd>{piece.capacity}</dd></>}
           </dl>
           {!sold && <a className="storefront-button" href={`${commissionsUrl}&${piece.photoUrl ? "referenciaPublicada" : "referencia"}=${encodeURIComponent(pieceSlug(piece))}`}>

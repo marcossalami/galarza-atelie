@@ -11,6 +11,19 @@ const referenceGroups = [
   { name: "Vasos", images: ["vaso-azul.jpeg"] },
   { name: "Porta-retratos", images: ["porta-retrato.jpeg"] },
 ];
+const referenceLabels = { copo: "Copos", caneca: "Xícaras e canecas", xícara: "Xícaras e canecas",
+  vaso: "Vasos", "porta-retrato": "Porta-retratos", bowl: "Bowls" };
+
+function useReferences() {
+  const [items, setItems] = useState(undefined);
+  useEffect(() => {
+    const request = new AbortController();
+    readHome("/api/referencias", request.signal).then(setItems)
+      .catch(() => { if (!request.signal.aborted) setItems([]); });
+    return () => request.abort();
+  }, []);
+  return items;
+}
 
 async function readHome(path, signal) {
   const response = await fetch(path, { signal });
@@ -58,12 +71,20 @@ function PortfolioPhoto({ item, ...props }) {
   return <img src={item.photoUrl ?? `/portfolio/${item.image}`} alt={item.alt} {...props} />;
 }
 
+function referenceCard(item) {
+  return <a className="storefront-card" href={item.id ? `/?publicada=${item.id}` : pieceUrl(item)} key={item.id ?? item.image}>
+    <PortfolioPhoto item={item.id ? { photoUrl: `/api/pecas/${item.id}/foto`, alt: item.name } : item} loading="lazy" />
+    <span>{item.name ?? item.caption}</span>
+  </a>;
+}
+
 const defaultSections = [{ id: "available", visible: true }, { id: "references", visible: true }];
 
 export function Storefront({ preview = false }) {
   const [published, setPublished] = useState([]);
   const [home, setHome] = useState(undefined);
   const [homeError, setHomeError] = useState(false);
+  const publicReferences = useReferences();
   useEffect(() => {
     const request = new AbortController();
     fetch("/api/pecas", { signal: request.signal })
@@ -81,7 +102,7 @@ export function Storefront({ preview = false }) {
       }).catch(() => { if (!request.signal.aborted) setHomeError(true); });
     return () => request.abort();
   }, [preview]);
-  const pieces = [...published, ...getAvailablePieces()];
+  const pieces = home ? published : [...published, ...getAvailablePieces()];
   if (preview && !home) return <p role="status">{homeError ? "Prévia indisponível. Entre novamente na gestão." : "Carregando prévia…"}</p>;
 
   const sections = home === null ? defaultSections : (home?.sections ?? []);
@@ -116,15 +137,17 @@ export function Storefront({ preview = false }) {
       </div>
     </>}
   </section>;
+  const preferred = ["copo-estrelas", "canecas-florais", "vaso-azul"];
+  const referenceCards = publicReferences === null ? [portfolioItems[1], portfolioItems[5], portfolioItems[7]]
+    : (publicReferences ?? []).slice().sort((left, right) => {
+      const rank = (piece) => preferred.includes(piece.legacy_slug) ? preferred.indexOf(piece.legacy_slug) : preferred.length;
+      return rank(left) - rank(right);
+    }).slice(0, 3);
   const references = <section key="references" className="storefront-reference-band" id="portfolio">
     <div className="storefront-wrap storefront-section">
       <h2>Referências</h2>
       <div className="storefront-grid">
-        {[portfolioItems[1], portfolioItems[5], portfolioItems[7]].map((item) =>
-          <a className="storefront-card" href={pieceUrl(item)} key={item.image}>
-            <PortfolioPhoto item={item} loading="lazy" />
-            <span>{item.caption}</span>
-          </a>)}
+        {referenceCards.map(referenceCard)}
       </div>
       <a className="text-link" href={referencesUrl}>Explorar galeria</a>
     </div>
@@ -157,21 +180,27 @@ export function Storefront({ preview = false }) {
 }
 
 export function ReferencesPage() {
+  const items = useReferences();
+  const byFormat = new Map();
+  for (const item of items ?? []) {
+    const name = referenceLabels[item.format.toLocaleLowerCase("pt-BR")] ?? item.format;
+    const pieces = byFormat.get(name) ?? [];
+    pieces.push(item);
+    byFormat.set(name, pieces);
+  }
+  const groups = items === null ? referenceGroups.map(({ name, images }) => ({
+    name, pieces: images.map((image) => portfolioItems.find((entry) => entry.image === image)),
+  })) : Array.from(byFormat, ([name, pieces]) => ({ name, pieces }));
   return <div className="storefront">
     <StorefrontHeader />
     <main className="storefront-wrap storefront-section storefront-gallery">
       <h1>Referências</h1>
       <a className="storefront-button" href={commissionsUrl}>Encomendar</a>
-      {referenceGroups.map(({ name, images }) => <section className="storefront-group" key={name}>
+      {items?.length === 0 && <p>Nenhuma referência disponível no momento.</p>}
+      {groups.map(({ name, pieces }) => <section className="storefront-group" key={name}>
         <h2>{name}</h2>
         <div className="storefront-grid">
-          {images.map((image) => {
-            const item = portfolioItems.find((entry) => entry.image === image);
-            return <a className="storefront-card" href={pieceUrl(item)} key={image}>
-              <PortfolioPhoto item={item} loading="lazy" />
-              <span>{item.caption}</span>
-            </a>;
-          })}
+          {pieces.map(referenceCard)}
         </div>
       </section>)}
     </main>

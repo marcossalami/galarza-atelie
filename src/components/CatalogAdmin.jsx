@@ -5,8 +5,13 @@ import { AdminHeader } from "./AdminPanel.jsx";
 import "./catalog-admin.css";
 
 const endpoint = "/api/gestao/pecas";
-const blank = { name: "", format: "", price: "", photo: null };
+const blank = { name: "", format: "", measurements: "", price: "", photo: null, status: "draft" };
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const labels = { available: "Disponível", reference: "Referência", draft: "Rascunho", sold: "Vendida" };
+
+function pieceStatus(piece) {
+  return piece.published ? "available" : piece.reference ? "reference" : piece.sold ? "sold" : "draft";
+}
 
 function PieceCard({ piece, photo }) {
   return (
@@ -14,7 +19,8 @@ function PieceCard({ piece, photo }) {
       {photo && <img src={photo} alt={piece.name || "Foto da peça"} />}
       <h2>{piece.name || "Peça sem nome"}</h2>
       {piece.format && <p>{piece.format}</p>}
-      {piece.price !== null && <p>{currency.format(piece.price / 100)}</p>}
+      {piece.measurements && <p>{piece.measurements}</p>}
+      {piece.status === "available" && piece.price !== null && <p>{currency.format(piece.price / 100)}</p>}
     </article>
   );
 }
@@ -37,7 +43,7 @@ export function CatalogAdmin() {
 
   function select(item) {
     setEditing(true);
-    setPiece(item ? { ...item, price: item.price === null ? "" : String(item.price / 100).replace(".", ","), photo: null } : blank);
+    setPiece(item ? { ...item, status: pieceStatus(item), price: item.price === null ? "" : String(item.price / 100).replace(".", ","), photo: null } : blank);
     setError("");
     setMessage("");
   }
@@ -48,8 +54,9 @@ export function CatalogAdmin() {
     : piece.hasPhoto ? `${endpoint}/${piece.id}/foto?v=${piece.revision}` : null;
   const original = items?.find(({ id }) => id === piece.id);
   const hasEdits = original && (piece.name !== original.name || piece.format !== original.format ||
+    piece.measurements !== original.measurements || piece.status !== pieceStatus(original) ||
     cents !== original.price || Boolean(piece.photo));
-  const unsaved = editing && (original ? hasEdits : Boolean(piece.name || piece.format || piece.price || piece.photo));
+  const unsaved = editing && (original ? hasEdits : Boolean(piece.name || piece.format || piece.measurements || piece.price || piece.photo || piece.status !== "draft"));
 
   function backToList() {
     if (unsaved && !window.confirm("Voltar à lista sem salvar as alterações desta peça?")) return;
@@ -83,25 +90,25 @@ export function CatalogAdmin() {
 
   async function save(event) {
     event.preventDefault();
-    const publish = event.nativeEvent.submitter?.value === "publish" || Boolean(piece.published);
     setMessage("");
     setError("");
     if (price && !cents) return setError("Informe um preço válido em reais.");
-    if ((publish || piece.sold) && (!piece.name.trim() || !piece.format.trim() || !cents || !photo)) {
-      return setError("Informe nome, formato, preço e foto para manter a página pública da peça.");
+    if (piece.status !== "draft" && (!piece.name.trim() || !piece.format.trim() || !photo)) {
+      return setError("Preencha nome, tipo e foto para mostrar a peça na loja.");
     }
+    if (piece.status === "available" && !cents) return setError("Informe o preço para colocar a peça à venda.");
     setBusy(true);
     try {
       const saved = await requestJson(piece.id ? `${endpoint}/${piece.id}` : endpoint, {
         method: piece.id ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...piece, price: cents, publish }),
+        body: JSON.stringify({ ...piece, price: cents }),
       });
       setItems((current) => current.some((item) => item.id === saved.id)
         ? current.map((item) => item.id === saved.id ? saved : item)
         : [saved, ...current]);
       select(saved);
-      setMessage(saved.published ? "Peça publicada." : saved.sold ? "Peça vendida atualizada." : "Rascunho salvo.");
+      setMessage(`Peça salva · ${labels[pieceStatus(saved)]}.`);
     } catch (reason) {
       setError(reason.message);
       if (reason.cause === 409) {
@@ -109,34 +116,6 @@ export function CatalogAdmin() {
           setItems(await requestJson(endpoint));
         } catch {
           setError("Sua edição ficou nesta tela. Para reabrir a versão atual, recarregue a página.");
-        }
-      }
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function changeAvailability(action) {
-    if (hasEdits && !window.confirm("Descartar as edições desta peça e alterar a disponibilidade?")) return;
-    setBusy(true);
-    setError("");
-    setMessage("");
-    try {
-      const saved = await requestJson(`${endpoint}/${piece.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, revision: piece.revision }),
-      });
-      setItems((current) => current.map((item) => item.id === saved.id ? saved : item));
-      select(saved);
-      setMessage(saved.sold ? "Peça marcada como vendida." : "Peça retirada da vitrine.");
-    } catch (reason) {
-      setError(reason.message);
-      if (reason.cause === 409) {
-        try {
-          setItems(await requestJson(endpoint));
-        } catch {
-          setError("Recarregue a página para abrir a versão atual da peça.");
         }
       }
     } finally {
@@ -161,7 +140,7 @@ export function CatalogAdmin() {
           {items.map((item) => <li key={item.id}>
             {item.hasPhoto && <img className="admin-piece-thumb" src={`${endpoint}/${item.id}/foto?v=${item.revision}`} alt="" />}
             <div><strong>{item.name || "Peça sem nome"}</strong>
-              <span className="admin-row-status">{item.published ? "Na vitrine" : item.sold ? "Vendida" : "Rascunho"}</span></div>
+              <span className="admin-row-status">{labels[pieceStatus(item)]}</span></div>
             <button type="button" aria-label={`Editar ${item.name || "peça sem nome"}`} onClick={() => select(item)}>Editar</button>
           </li>)}
         </ul>}
@@ -171,21 +150,30 @@ export function CatalogAdmin() {
           <fieldset disabled={busy}>
             <legend className="admin-visually-hidden">Dados da peça</legend>
             <label>Nome<input maxLength={100} value={piece.name} onChange={(event) => setPiece({ ...piece, name: event.target.value })} /></label>
-            <label>Formato<input maxLength={50} value={piece.format} onChange={(event) => setPiece({ ...piece, format: event.target.value })} /></label>
+            <label>Tipo<input maxLength={50} placeholder="Ex.: Copo, Caneca, Bowl" value={piece.format} onChange={(event) => setPiece({ ...piece, format: event.target.value })} /></label>
             <label>Preço em reais<input inputMode="decimal" maxLength={9} value={piece.price} onChange={(event) => setPiece({ ...piece, price: event.target.value })} /></label>
+            <label>Tamanho<input maxLength={100} placeholder="Ex.: 9 cm de altura ou 250 ml" value={piece.measurements}
+              onChange={(event) => setPiece({ ...piece, measurements: event.target.value })} /></label>
+            <label>Situação<select value={piece.status} onChange={(event) => setPiece({ ...piece, status: event.target.value })}>
+              <option value="draft">Rascunho</option>
+              <option value="available">Disponível para venda</option>
+              <option value="reference">Referência para encomendas</option>
+              <option value="sold">Vendida</option>
+            </select></label>
+            <p className="admin-hint">{{
+              draft: "Só você pode ver esta peça.",
+              available: "A peça aparece na vitrine com o preço.",
+              reference: "A peça aparece na galeria de referências, sem preço público.",
+              sold: "A peça sai da vitrine. Quem tiver o link vê que foi vendida.",
+            }[piece.status]}</p>
             <label>Foto<input type="file" accept="image/*" onChange={changePhoto} /></label>
-            {!piece.published && <button type="submit" value="draft">{piece.sold ? "Salvar peça vendida" : "Salvar rascunho"}</button>}
-            <button className="admin-primary" type="submit" value="publish">{piece.published ? "Salvar alterações" : piece.sold ? "Voltar à vitrine" : "Publicar na vitrine"}</button>
+            <button className="admin-primary" type="submit">Salvar peça</button>
           </fieldset>
         </form>
         <section className="admin-surface admin-piece-preview" aria-label="Prévia da peça">
           <p>Como a peça aparece na loja</p>
           <PieceCard piece={{ ...piece, price: cents }} photo={photo} />
-          {(piece.published === 1 || piece.sold === 1) && <a href={`/?publicada=${piece.id}`}>Ver na loja ↗</a>}
-          {piece.published === 1 && <div className="piece-picker">
-            <button disabled={busy} onClick={() => changeAvailability("withdraw")}>Retirar da vitrine</button>
-            <button disabled={busy} onClick={() => changeAvailability("sold")}>Marcar como vendida</button>
-          </div>}
+          {original && pieceStatus(original) !== "draft" && <a href={`/?publicada=${piece.id}`}>Ver na loja ↗</a>}
         </section>
       </div>}
       {!items && !error && <p role="status">Carregando peças…</p>}
@@ -194,20 +182,29 @@ export function CatalogAdmin() {
   );
 }
 
-export function PublishedPiece({ id }) {
+export function PublishedPiece({ id, fallback }) {
   const [piece, setPiece] = useState(null);
   const [error, setError] = useState(false);
   useEffect(() => {
-    let active = true;
-    requestJson(`/api/pecas/${encodeURIComponent(id)}`).then(
-      (data) => { if (active) setPiece(data); },
-      () => { if (active) setError(true); },
-    );
-    return () => { active = false; };
-  }, [id]);
+    const request = new AbortController();
+    fetch(`/api/pecas/${encodeURIComponent(id)}`, { signal: request.signal })
+      .then(async (response) => {
+        if (fallback && !response.headers.get("Content-Type")?.includes("application/json") &&
+            (response.ok || response.status === 404)) {
+          setPiece({ legacy: true });
+          return;
+        }
+        if (!response.ok) throw new Error("Peça indisponível");
+        setPiece(await response.json());
+      }).catch(() => { if (!request.signal.aborted) setError(true); });
+    return () => request.abort();
+  }, [id, fallback]);
+  if (piece?.legacy) return <PieceDetailPage piece={fallback} />;
   if (piece) {
     return <PieceDetailPage piece={{ ...piece, alt: piece.name, photoUrl: `/api/pecas/${piece.id}/foto`,
-      status: piece.sold ? "sold" : "available", priceInCents: piece.price, slug: piece.id }} />;
+      photos: piece.angles?.map(({ position, alt }) => ({ url: `/api/pecas/${piece.id}/foto/${position}`, alt })),
+      status: pieceStatus({ ...piece, published: !piece.reference && !piece.sold }),
+      availability: piece.reference ? "Referência para encomendas" : undefined, priceInCents: piece.price, slug: piece.id }} />;
   }
   return <main className="catalog-management">
     <a href="/">Galarza Ateliê</a>
