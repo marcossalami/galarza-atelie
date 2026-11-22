@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { pieceUrl } from "../content/catalog.js";
-import { instagramUrl, instagramDirectUrl } from "../content/siteContent.js";
+import { instagramUrl } from "../content/siteContent.js";
 import { StorefrontHeader } from "./Storefront.jsx";
 
 export function CommissionPage({ piece }) {
@@ -28,8 +28,7 @@ export function CommissionPage({ piece }) {
         {piece ? " Envie o link da peça para mostrar sua referência." : " Conte sua ideia ou envie uma foto de referência."}
       </p>
       <div className="storefront-actions">
-        <a className="storefront-button" href={instagramUrl}>Abrir perfil no Instagram</a>
-        <a className="text-link" href={instagramDirectUrl}>Tentar abrir o Direct</a>
+        <a className="storefront-button" href={instagramUrl}>Mandar mensagem</a>
         {piece && <button className="storefront-instagram" type="button" onClick={copyLink}>Copiar link da peça</button>}
       </div>
       <p className="storefront-detail-message" role="status">
