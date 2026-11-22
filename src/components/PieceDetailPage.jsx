@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
-import { pieceAvailability, piecePrice } from "../content/catalog.js";
-import { ContactActions } from "./CommissionPage.jsx";
+import { pieceAvailability, piecePrice, pieceSlug } from "../content/catalog.js";
+import { commissionsUrl } from "../content/siteContent.js";
+import { PhotoViewer } from "./PhotoViewer.jsx";
 import { StorefrontHeader } from "./Storefront.jsx";
 
 export function PieceDetailPage({ piece }) {
@@ -8,7 +9,6 @@ export function PieceDetailPage({ piece }) {
   const dialog = useRef(null);
   const sold = piece.status === "sold";
   const price = piece.status === "available" ? piecePrice(piece) : null;
-  const message = `Oi! Gostaria de saber mais sobre a peça ${piece.name}.`;
   const photos = [{ image: piece.image, alt: piece.alt }, ...(piece.photos ?? [])];
 
   return <div className="storefront">
@@ -17,8 +17,8 @@ export function PieceDetailPage({ piece }) {
       <a className="text-link" href="/?pagina=referencias">← Ver referências</a>
       <article className="storefront-detail">
         <div className="storefront-detail-photos">
-          {photos.map((photo) => <button className="storefront-zoom" type="button" key={photo.image} onClick={() => {
-            setExpandedPhoto(photo);
+          {photos.map((photo, index) => <button className="storefront-zoom" type="button" key={photo.image} onClick={() => {
+            setExpandedPhoto(index);
             dialog.current.showModal();
           }}>
             <img src={`/portfolio/${photo.image}`} alt={photo.alt} />
@@ -36,13 +36,12 @@ export function PieceDetailPage({ piece }) {
             <dt>Medidas</dt><dd>{piece.measurements ?? "Sob consulta"}</dd>
             {piece.capacity && <><dt>Capacidade</dt><dd>{piece.capacity}</dd></>}
           </dl>
-          {!sold && <ContactActions message={message} />}
+          {!sold && <a className="storefront-button" href={`${commissionsUrl}&referencia=${encodeURIComponent(pieceSlug(piece))}`}>
+            Encomendar com esta referência
+          </a>}
         </div>
       </article>
-      <dialog className="storefront-photo-dialog" ref={dialog} aria-label="Foto ampliada" onClose={() => setExpandedPhoto(null)}>
-        <form method="dialog"><button className="storefront-button">Fechar foto</button></form>
-        {expandedPhoto && <img src={`/portfolio/${expandedPhoto.image}`} alt={expandedPhoto.alt} />}
-      </dialog>
+      <PhotoViewer dialog={dialog} photos={photos} index={expandedPhoto} onSelect={setExpandedPhoto} onClose={() => setExpandedPhoto(null)} />
     </main>
   </div>;
 }

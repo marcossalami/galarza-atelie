@@ -22,6 +22,6 @@ export default function App() {
   }
 
   if (params.get("pagina") === "referencias") return <ReferencesPage />;
-  if (params.get("pagina") === "encomendas") return <CommissionPage />;
+  if (params.get("pagina") === "encomendas") return <CommissionPage piece={getCatalogItem(params.get("referencia"))} />;
   return <Storefront />;
 }

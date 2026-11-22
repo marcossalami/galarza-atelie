@@ -38,3 +38,20 @@ test("uma referência sem preço tem detalhe e foto ampliável", async ({ page }
   await lightbox.getByRole("button", { name: "Fechar foto" }).click();
   await expect(lightbox).not.toBeVisible();
 });
+
+test("a peça escolhida segue para a encomenda e a galeria aceita zoom e navegação", async ({ page }) => {
+  await page.goto("/?peca=copo-estrelas");
+  await page.getByRole("button", { name: /ampliar foto/i }).first().click();
+  const viewer = page.getByRole("dialog", { name: "Foto ampliada" });
+  await viewer.getByRole("button", { name: "Aproximar" }).click();
+  await expect(viewer.getByRole("img")).toHaveAttribute("style", /scale\(1\.5\)/);
+  await viewer.getByRole("button", { name: "Afastar" }).click();
+  await expect(viewer.getByRole("button", { name: "Afastar" })).toBeDisabled();
+  await viewer.getByRole("button", { name: "Próxima" }).click();
+  await expect(viewer.getByRole("img")).toHaveAttribute("src", /copo-estrelas-lateral/);
+  await page.keyboard.press("Escape");
+  await page.getByRole("link", { name: "Encomendar com esta referência" }).click();
+  await expect(page).toHaveURL(/referencia=copo-estrelas/);
+  await expect(page.getByText("Copo estrelas")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copiar link da peça" })).toBeVisible();
+});

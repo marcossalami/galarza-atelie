@@ -41,9 +41,12 @@ function referenceSlug(item) {
   return item.image.replace(/\.[^.]+$/, "");
 }
 
+export function pieceSlug(item) {
+  return item.slug ?? catalogItems.find((piece) => piece.image === item.image)?.slug ?? referenceSlug(item);
+}
+
 export function pieceUrl(item) {
-  const slug = item.slug ?? catalogItems.find((piece) => piece.image === item.image)?.slug ?? referenceSlug(item);
-  return `/?peca=${encodeURIComponent(slug)}`;
+  return `/?peca=${encodeURIComponent(pieceSlug(item))}`;
 }
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
