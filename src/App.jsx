@@ -3,6 +3,7 @@ import { CatalogPage } from "./components/CatalogPage.jsx";
 import { PieceDetailPage } from "./components/PieceDetailPage.jsx";
 import { getCatalogItem } from "./content/catalog.js";
 import { Storefront, ReferencesPage } from "./components/Storefront.jsx";
+import { CommissionPage } from "./components/CommissionPage.jsx";
 
 export default function App() {
   const params = new URLSearchParams(window.location.search);
@@ -21,5 +22,6 @@ export default function App() {
   }
 
   if (params.get("pagina") === "referencias") return <ReferencesPage />;
+  if (params.get("pagina") === "encomendas") return <CommissionPage />;
   return <Storefront />;
 }

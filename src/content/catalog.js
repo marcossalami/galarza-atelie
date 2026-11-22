@@ -1,3 +1,5 @@
+﻿import { portfolioItems } from "./siteContent.js";
+
 export const catalogCategories = [
   { id: "xicaras", label: "Xícaras" },
   { id: "bowls", label: "Bowls" },
@@ -29,7 +31,19 @@ export const catalogItems = [
 ];
 
 export function getCatalogItem(slug) {
-  return catalogItems.find((item) => item.slug === slug);
+  const registered = catalogItems.find((item) => item.slug === slug);
+  if (registered) return registered;
+  const reference = portfolioItems.find((item) => referenceSlug(item) === slug);
+  return reference && { ...reference, name: reference.caption, availability: "Referência para encomendas" };
+}
+
+function referenceSlug(item) {
+  return item.image.replace(/\.[^.]+$/, "");
+}
+
+export function pieceUrl(item) {
+  const slug = item.slug ?? catalogItems.find((piece) => piece.image === item.image)?.slug ?? referenceSlug(item);
+  return `/?peca=${encodeURIComponent(slug)}`;
 }
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
