@@ -48,7 +48,7 @@ describe("Vitrine pública", () => {
   it("oferece o Direct e uma mensagem manual quando copiar não é possível", async () => {
     window.history.replaceState(null, "", "/?peca=copo-estrelas");
     render(<App />);
-    expect(screen.getByRole("link", { name: "Consultar pelo Direct" })).toHaveAttribute("href", "https://ig.me/m/galarza.atelie");
+    expect(screen.getByRole("link", { name: "Abrir perfil no Instagram" })).toHaveAttribute("href", "https://www.instagram.com/galarza.atelie/");
     fireEvent.click(screen.getByRole("button", { name: "Copiar mensagem" }));
     expect(await screen.findByText(/copie esta mensagem/i)).toHaveTextContent("Copo estrelas");
   });

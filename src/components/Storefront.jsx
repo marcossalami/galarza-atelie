@@ -1,5 +1,5 @@
-import { getAvailablePieces, piecePrice } from "../content/catalog.js";
-import { instagramDirectUrl, instagramUrl, portfolioItems } from "../content/siteContent.js";
+import { getAvailablePieces, piecePrice, pieceUrl } from "../content/catalog.js";
+import { commissionsUrl, instagramUrl, portfolioItems } from "../content/siteContent.js";
 import "./storefront.css";
 
 const referencesUrl = "/?pagina=referencias";
@@ -31,6 +31,7 @@ export function StorefrontHeader() {
           }
         }}>Peças disponíveis</a>
         <a href={referencesUrl}>Referências</a>
+        <a href={commissionsUrl}>Encomendas</a>
       </nav>
     </details>
   </header>;
@@ -50,18 +51,20 @@ export function Storefront() {
           <h1 id="storefront-title">Galarza <br />Ateliê</h1>
           <p>Cerâmicas feitas à mão.</p>
           <div className="storefront-actions" id="encomendas">
-            <a className="storefront-button" href={instagramDirectUrl}>Encomendar</a>
+            <a className="storefront-button" href={commissionsUrl}>Encomendar</a>
             <a className="storefront-instagram" href={instagramUrl}>
               <span className="storefront-instagram-icon" aria-hidden="true" />Instagram
             </a>
           </div>
         </div>
-        <PortfolioPhoto className="storefront-cover" item={portfolioItems[0]} fetchPriority="high" />
+        <a className="storefront-cover-link" href={pieceUrl(portfolioItems[0])} aria-label="Ver detalhes das canecas da capa">
+          <PortfolioPhoto className="storefront-cover" item={portfolioItems[0]} fetchPriority="high" />
+        </a>
       </section>
       <section className="storefront-wrap storefront-section" id="disponiveis" tabIndex={-1} aria-labelledby="available-title">
         <h2 id="available-title">Peças disponíveis</h2>
         {pieces.length ? <div className="storefront-grid">
-          {pieces.map((piece) => <a className="storefront-card" key={piece.slug} href={`/?peca=${encodeURIComponent(piece.slug)}`}>
+          {pieces.map((piece) => <a className="storefront-card" key={piece.slug} href={pieceUrl(piece)}>
             <PortfolioPhoto item={piece} loading="lazy" />
             <span>{piece.name}</span>
             <small>{piecePrice(piece)}</small>
@@ -69,7 +72,7 @@ export function Storefront() {
         </div> : <>
           <p>Sem peças disponíveis no momento.</p>
           <div className="storefront-actions">
-            <a className="storefront-button" href={instagramDirectUrl}>Encomendar</a>
+            <a className="storefront-button" href={commissionsUrl}>Encomendar</a>
             <a className="text-link" href={referencesUrl}>Ver referências</a>
           </div>
         </>}
@@ -79,7 +82,7 @@ export function Storefront() {
           <h2>Referências</h2>
           <div className="storefront-grid">
             {[portfolioItems[1], portfolioItems[5], portfolioItems[7]].map((item) =>
-              <a className="storefront-card" href={referencesUrl} key={item.image}>
+              <a className="storefront-card" href={pieceUrl(item)} key={item.image}>
                 <PortfolioPhoto item={item} loading="lazy" />
                 <span>{item.caption}</span>
               </a>)}
@@ -96,16 +99,16 @@ export function ReferencesPage() {
     <StorefrontHeader />
     <main className="storefront-wrap storefront-section storefront-gallery">
       <h1>Referências</h1>
-      <a className="storefront-button" href={instagramDirectUrl}>Encomendar</a>
+      <a className="storefront-button" href={commissionsUrl}>Encomendar</a>
       {referenceGroups.map(({ name, images }) => <section className="storefront-group" key={name}>
         <h2>{name}</h2>
         <div className="storefront-grid">
           {images.map((image) => {
             const item = portfolioItems.find((entry) => entry.image === image);
-            return <figure className="storefront-card" key={image}>
+            return <a className="storefront-card" href={pieceUrl(item)} key={image}>
               <PortfolioPhoto item={item} loading="lazy" />
-              <figcaption>{item.caption}</figcaption>
-            </figure>;
+              <span>{item.caption}</span>
+            </a>;
           })}
         </div>
       </section>)}
