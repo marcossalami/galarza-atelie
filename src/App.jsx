@@ -12,9 +12,12 @@ import { AboutPage } from "./components/AboutPage.jsx";
 import { CatalogPage } from "./components/CatalogPage.jsx";
 import { PieceDetailPage } from "./components/PieceDetailPage.jsx";
 import { getCatalogItem } from "./content/catalog.js";
+import { CatalogAdmin, PublishedPiece } from "./components/CatalogAdmin.jsx";
 
 export default function App() {
   const params = new URLSearchParams(window.location.search);
+  if (/^\/gestao\/?$/.test(window.location.pathname)) return <CatalogAdmin />;
+  if (params.has("publicada")) return <PublishedPiece id={params.get("publicada")} />;
   const piece = getCatalogItem(params.get("peca"));
 
   if (piece) {

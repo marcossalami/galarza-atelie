@@ -2,8 +2,13 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "cold-bread-d52c",
   "compatibility_date": "2026-11-21",
+  "main": "worker/index.js",
+  "keep_vars": true,
+  "d1_databases": [{ "binding": "CATALOG_DB", "database_name": "galarza-catalogo" }],
   "assets": {
+    "binding": "ASSETS",
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/gestao", "/gestao/*", "/api/*"]
   }
 }

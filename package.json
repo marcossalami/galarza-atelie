@@ -23,6 +23,7 @@
     "vitest": "5.1.1"
   },
   "dependencies": {
+    "jose": "^6.2.18",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   }
